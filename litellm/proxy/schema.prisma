@@ -142,6 +142,7 @@ model LiteLLM_UserTable {
     model_max_budget Json @default("{}")
     created_at      DateTime?               @default(now()) @map("created_at")
     updated_at      DateTime?               @default(now()) @updatedAt @map("updated_at")
+    deleted_at      DateTime?                                 @map("deleted_at")
 
     // relations
     litellm_organization_table LiteLLM_OrganizationTable?                   @relation(fields: [organization_id], references: [organization_id])
@@ -222,6 +223,7 @@ model LiteLLM_VerificationToken {
     created_by String?
     updated_at      DateTime?               @default(now()) @updatedAt @map("updated_at")
     updated_by String?
+    deleted_at      DateTime?                                 @map("deleted_at")
     litellm_budget_table LiteLLM_BudgetTable?   @relation(fields: [budget_id], references: [budget_id])
     litellm_organization_table LiteLLM_OrganizationTable?   @relation(fields: [organization_id], references: [organization_id])
     object_permission LiteLLM_ObjectPermissionTable?   @relation(fields: [object_permission_id], references: [object_permission_id])

@@ -2686,7 +2686,7 @@ class PrismaClient:
         user_id: Optional[str] = None,
     ):
         """
-        Allow user to delete a key(s)
+        Allow user to soft delete a key(s)
 
         Ensure user owns that key, unless admin.
         """
@@ -2703,15 +2703,18 @@ class PrismaClient:
                 filter_query: dict = {}
                 if user_id is not None:
                     filter_query = {
-                        "AND": [{"token": {"in": hashed_tokens}}, {"user_id": user_id}]
+                        "AND": [{"token": {"in": hashed_tokens}}, {"user_id": user_id}, {"deleted_at": None}]
                     }
                 else:
-                    filter_query = {"token": {"in": hashed_tokens}}
+                    filter_query = {"token": {"in": hashed_tokens}, "deleted_at": None}
 
-                deleted_tokens = await self.db.litellm_verificationtoken.delete_many(
-                    where=filter_query  # type: ignore
+                # Soft delete tokens by setting deleted_at timestamp
+                from datetime import datetime, timezone
+                deleted_tokens = await self.db.litellm_verificationtoken.update_many(
+                    where=filter_query,  # type: ignore
+                    data={"deleted_at": datetime.now(timezone.utc)}
                 )
-                verbose_proxy_logger.debug("deleted_tokens: %s", deleted_tokens)
+                verbose_proxy_logger.debug("soft deleted_tokens: %s", deleted_tokens)
                 return {"deleted_keys": deleted_tokens}
             elif (
                 table_name == "team"
@@ -2728,9 +2731,11 @@ class PrismaClient:
                 and team_id_list is not None
                 and isinstance(team_id_list, List)
             ):
-                # admin only endpoint -> `/team/delete`
-                await self.db.litellm_verificationtoken.delete_many(
-                    where={"team_id": {"in": team_id_list}}
+                # admin only endpoint -> `/team/delete` - soft delete team keys
+                from datetime import datetime, timezone
+                await self.db.litellm_verificationtoken.update_many(
+                    where={"team_id": {"in": team_id_list}, "deleted_at": None},
+                    data={"deleted_at": datetime.now(timezone.utc)}
                 )
         except Exception as e:
             import traceback

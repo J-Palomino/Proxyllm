@@ -1413,6 +1413,9 @@ async def get_users(
     sort_order: str = fastapi.Query(
         default="asc", description="Sort order ('asc' or 'desc')"
     ),
+    include_deleted: bool = fastapi.Query(
+        default=False, description="Include soft deleted users in the response"
+    ),
 ):
     """
     Get a paginated list of users with filtering and sorting options.
@@ -1484,6 +1487,10 @@ async def get_users(
     ## Filter any none fastapi.Query params - e.g. where_conditions: {'user_email': {'contains': Query(None), 'mode': 'insensitive'}, 'teams': {'has': Query(None)}}
     where_conditions = {k: v for k, v in where_conditions.items() if v is not None}
 
+    # Add soft delete filter - exclude deleted users by default
+    if not include_deleted:
+        where_conditions["deleted_at"] = None
+
     # Build order_by conditions
 
     order_by: Optional[Dict[str, str]] = (
@@ -1553,7 +1560,7 @@ async def delete_user(
     ),
 ):
     """
-    delete user and associated user keys
+    Soft delete user and associated user keys
 
     ```
     curl --location 'http://0.0.0.0:4000/user/delete' \
@@ -1568,7 +1575,7 @@ async def delete_user(
     ```
 
     Parameters:
-    - user_ids: List[str] - The list of user id's to be deleted.
+    - user_ids: List[str] - The list of user id's to be soft deleted.
     """
     from litellm.proxy.management_endpoints.team_endpoints import (
         _cleanup_members_with_roles,
@@ -1585,7 +1592,7 @@ async def delete_user(
     if data.user_ids is None:
         raise HTTPException(status_code=400, detail={"error": "No user id passed in"})
 
-    # check that all teams passed exist
+    # check that all users passed exist and are not already deleted
     for user_id in data.user_ids:
         user_row = await prisma_client.db.litellm_usertable.find_unique(
             where={"user_id": user_id}
@@ -1596,11 +1603,17 @@ async def delete_user(
                 status_code=404,
                 detail={"error": f"User not found, passed user_id={user_id}"},
             )
+        
+        if user_row.deleted_at is not None:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": f"User already deleted, passed user_id={user_id}"},
+            )
         else:
             # Enterprise Feature - Audit Logging. Enable with litellm.store_audit_logs = True
             # we do this after the first for loop, since first for loop is for validation. we only want this inserted after validation passes
             if litellm.store_audit_logs is True:
-                # make an audit log for each team deleted
+                # make an audit log for each user deleted
                 _user_row = user_row.json(exclude_none=True)
 
                 asyncio.create_task(
@@ -1651,32 +1664,130 @@ async def delete_user(
             )
     # End of Audit logging
 
-    ## DELETE ASSOCIATED KEYS
-    await prisma_client.db.litellm_verificationtoken.delete_many(
-        where={"user_id": {"in": data.user_ids}}
+    ## SOFT DELETE ASSOCIATED KEYS
+    await prisma_client.db.litellm_verificationtoken.update_many(
+        where={"user_id": {"in": data.user_ids}, "deleted_at": None},
+        data={"deleted_at": datetime.now(timezone.utc)}
     )
 
-    ## DELETE ASSOCIATED INVITATION LINKS
+    ## DELETE ASSOCIATED INVITATION LINKS (these can still be hard deleted)
     await prisma_client.db.litellm_invitationlink.delete_many(
         where={"user_id": {"in": data.user_ids}}
     )
 
-    ## DELETE ASSOCIATED ORGANIZATION MEMBERSHIPS
+    ## DELETE ASSOCIATED ORGANIZATION MEMBERSHIPS (these can still be hard deleted)
     await prisma_client.db.litellm_organizationmembership.delete_many(
         where={"user_id": {"in": data.user_ids}}
     )
 
-    ## DELETE ASSOCIATED TEAM MEMBERSHIPS
+    ## DELETE ASSOCIATED TEAM MEMBERSHIPS (these can still be hard deleted)
     await prisma_client.db.litellm_teammembership.delete_many(
         where={"user_id": {"in": data.user_ids}}
     )
 
-    ## DELETE USERS
-    deleted_users = await prisma_client.db.litellm_usertable.delete_many(
-        where={"user_id": {"in": data.user_ids}}
+    ## SOFT DELETE USERS
+    deleted_users = await prisma_client.db.litellm_usertable.update_many(
+        where={"user_id": {"in": data.user_ids}, "deleted_at": None},
+        data={"deleted_at": datetime.now(timezone.utc)}
     )
 
     return deleted_users
+
+
+@router.post(
+    "/user/restore",
+    tags=["Internal User management"],
+    dependencies=[Depends(user_api_key_auth)],
+)
+@management_endpoint_wrapper
+async def restore_user(
+    data: RestoreUserRequest,
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+    litellm_changed_by: Optional[str] = Header(
+        None,
+        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+    ),
+):
+    """
+    Restore soft deleted users (does NOT restore their keys - they must generate new ones)
+
+    ```
+    curl --location 'http://0.0.0.0:4000/user/restore' \
+
+    --header 'Authorization: Bearer sk-1234' \
+
+    --header 'Content-Type: application/json' \
+
+    --data-raw '{
+        "user_ids": ["45e3e396-ee08-4a61-a88e-16b3ce7e0849"]
+    }'
+    ```
+
+    Parameters:
+    - user_ids: List[str] - The list of user id's to be restored.
+    """
+    from litellm.proxy.proxy_server import (
+        create_audit_log_for_update,
+        litellm_proxy_admin_name,
+        prisma_client,
+    )
+
+    if prisma_client is None:
+        raise HTTPException(status_code=500, detail={"error": "No db connected"})
+
+    if data.user_ids is None:
+        raise HTTPException(status_code=400, detail={"error": "No user id passed in"})
+
+    # check that all users passed exist and are actually deleted
+    for user_id in data.user_ids:
+        user_row = await prisma_client.db.litellm_usertable.find_unique(
+            where={"user_id": user_id}
+        )
+
+        if user_row is None:
+            raise HTTPException(
+                status_code=404,
+                detail={"error": f"User not found, passed user_id={user_id}"},
+            )
+        
+        if user_row.deleted_at is None:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": f"User is not deleted, passed user_id={user_id}"},
+            )
+        else:
+            # Enterprise Feature - Audit Logging. Enable with litellm.store_audit_logs = True
+            if litellm.store_audit_logs is True:
+                # make an audit log for each user restored
+                _user_row = user_row.json(exclude_none=True)
+
+                asyncio.create_task(
+                    create_audit_log_for_update(
+                        request_data=LiteLLM_AuditLogs(
+                            id=str(uuid.uuid4()),
+                            updated_at=datetime.now(timezone.utc),
+                            changed_by=litellm_changed_by
+                            or user_api_key_dict.user_id
+                            or litellm_proxy_admin_name,
+                            changed_by_api_key=user_api_key_dict.api_key,
+                            table_name=LitellmTableNames.USER_TABLE_NAME,
+                            object_id=user_id,
+                            action="restored",
+                            updated_values="{}",
+                            before_value=_user_row,
+                        )
+                    )
+                )
+
+    ## RESTORE USERS (set deleted_at to NULL)
+    restored_users = await prisma_client.db.litellm_usertable.update_many(
+        where={"user_id": {"in": data.user_ids}, "deleted_at": {"not": None}},
+        data={"deleted_at": None}
+    )
+
+    # NOTE: We deliberately do NOT restore the user's keys - they must generate new ones for security
+
+    return restored_users
 
 
 async def add_internal_user_to_organization(
