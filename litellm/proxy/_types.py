@@ -1083,6 +1083,24 @@ class DeleteUserRequest(LiteLLMPydanticObjectBase):
     user_ids: List[str]  # required
 
 
+class RestoreUserRequest(LiteLLMPydanticObjectBase):
+    user_ids: List[str]  # required
+
+
+class RestoreKeyRequest(LiteLLMPydanticObjectBase):
+    keys: Optional[List[str]] = None
+    key_aliases: Optional[List[str]] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_at_least_one(cls, values):
+        if not values.get("keys") and not values.get("key_aliases"):
+            raise ValueError(
+                "At least one of 'keys' or 'key_aliases' must be provided."
+            )
+        return values
+
+
 AllowedModelRegion = Literal["eu", "us"]
 
 

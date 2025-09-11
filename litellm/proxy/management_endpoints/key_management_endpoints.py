@@ -1370,6 +1370,84 @@ async def delete_key_fn(
 
 
 @router.post(
+    "/key/restore", tags=["key management"], dependencies=[Depends(user_api_key_auth)]
+)
+@management_endpoint_wrapper
+async def restore_key_fn(
+    data: RestoreKeyRequest,
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+    litellm_changed_by: Optional[str] = Header(
+        None,
+        description="The litellm-changed-by header enables tracking of actions performed by authorized users on behalf of other users, providing an audit trail for accountability",
+    ),
+):
+    """
+    Restore soft deleted keys from the key management system.
+
+    Parameters::
+    - keys (List[str]): A list of keys or hashed keys to restore. Example {"keys": ["sk-QWrxEynunsNpV1zT48HIrw", "837e17519f44683334df5291321d97b8bf1098cd490e49e215f6fea935aa28be"]}
+    - key_aliases (List[str]): A list of key aliases to restore. Can be passed instead of `keys`.Example {"key_aliases": ["alias1", "alias2"]}
+
+    Returns:
+    - restored_keys (List[str]): A list of restored keys. Example {"restored_keys": ["sk-QWrxEynunsNpV1zT48HIrw", "837e17519f44683334df5291321d97b8bf1098cd490e49e215f6fea935aa28be"]}
+
+    Example:
+    ```bash
+    curl --location 'http://0.0.0.0:4000/key/restore' \
+    --header 'Authorization: Bearer sk-1234' \
+    --header 'Content-Type: application/json' \
+    --data '{
+        "keys": ["sk-QWrxEynunsNpV1zT48HIrw"]
+    }'
+    ```
+
+    Raises:
+        HTTPException: If an error occurs during key restoration.
+    """
+    try:
+        from litellm.proxy.proxy_server import prisma_client, user_api_key_cache
+
+        if prisma_client is None:
+            raise Exception("Not connected to DB!")
+
+        restored_keys = []
+        if data.keys:
+            number_restored_keys = await restore_verification_tokens(
+                tokens=data.keys,
+                user_api_key_cache=user_api_key_cache,
+                user_api_key_dict=user_api_key_dict,
+            )
+            restored_keys = data.keys
+        elif data.key_aliases:
+            number_restored_keys = await restore_key_aliases(
+                key_aliases=data.key_aliases,
+                prisma_client=prisma_client,
+                user_api_key_cache=user_api_key_cache,
+                user_api_key_dict=user_api_key_dict,
+            )
+            restored_keys = data.key_aliases
+        else:
+            raise ValueError("Invalid request type")
+
+        if number_restored_keys is None:
+            raise ProxyException(
+                message="Failed to restore keys",
+                type="internal_error",
+                param=None,
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return {"restored_keys": restored_keys}
+    except Exception as e:
+        verbose_proxy_logger.exception(
+            "litellm.proxy.proxy_server.restore_key_fn(): Exception occured - {}".format(
+                str(e)
+            )
+        )
+        raise handle_exception_on_proxy(e)
+
+
+@router.post(
     "/v2/key/info",
     tags=["key management"],
     dependencies=[Depends(user_api_key_auth)],
@@ -2453,6 +2531,9 @@ async def list_keys(
         description="Column to sort by (e.g. 'user_id', 'created_at', 'spend')",
     ),
     sort_order: str = Query(default="desc", description="Sort order ('asc' or 'desc')"),
+    include_deleted: bool = Query(
+        default=False, description="Include soft deleted keys in the response"
+    ),
 ) -> KeyListResponseObject:
     """
     List all keys for a given user / team / organization.
@@ -2645,6 +2726,13 @@ async def _list_key_helper(
         where = {"AND": [where, {"OR": or_conditions}]}
     elif len(or_conditions) == 1:
         where.update(or_conditions[0])
+
+    # Add soft delete filter - exclude deleted keys by default
+    if not include_deleted:
+        if "AND" in where:
+            where["AND"].append({"deleted_at": None})
+        else:
+            where["deleted_at"] = None
 
     verbose_proxy_logger.debug(f"Filter conditions: {where}")
 
@@ -3207,3 +3295,108 @@ def validate_model_max_budget(model_max_budget: Optional[Dict]) -> None:
         raise ValueError(
             f"Invalid model_max_budget: {str(e)}. Example of valid model_max_budget: https://docs.litellm.ai/docs/proxy/users"
         )
+
+
+async def restore_verification_tokens(
+    tokens: List,
+    user_api_key_cache: DualCache,
+    user_api_key_dict: UserAPIKeyAuth,
+) -> Optional[Dict]:
+    """
+    Helper that restores the list of tokens from soft delete
+
+    - check if user is proxy admin
+    - check if user is team admin and key is a team key
+
+    Args:
+        tokens: List of tokens to restore
+        user_api_key_cache: Cache for API keys
+        user_api_key_dict: User API key authentication details
+
+    Returns:
+        Optional[Dict]: Number of restored tokens
+    """
+    from litellm.proxy.proxy_server import prisma_client
+    from datetime import datetime, timezone
+
+    try:
+        if prisma_client:
+            tokens = [_hash_token_if_needed(token=key) for key in tokens]
+            _keys_being_restored: List[LiteLLM_VerificationToken] = (
+                await prisma_client.db.litellm_verificationtoken.find_many(
+                    where={"token": {"in": tokens}, "deleted_at": {"not": None}}
+                )
+            )
+
+            if len(_keys_being_restored) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail={"error": "No deleted keys found"},
+                )
+
+            # check if admin making request - don't filter by user-id
+            if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+                restored_tokens = await prisma_client.db.litellm_verificationtoken.update_many(
+                    where={"token": {"in": tokens}, "deleted_at": {"not": None}},
+                    data={"deleted_at": None}
+                )
+            else:
+                tasks = []
+                restored_token_count = 0
+                for key in _keys_being_restored:
+
+                    async def _restore_key(key: LiteLLM_VerificationToken):
+                        nonlocal restored_token_count
+                        if await can_delete_verification_token(
+                            key_info=key,
+                            user_api_key_cache=user_api_key_cache,
+                            user_api_key_dict=user_api_key_dict,
+                            prisma_client=prisma_client,
+                        ):
+                            await prisma_client.db.litellm_verificationtoken.update(
+                                where={"token": key.token},
+                                data={"deleted_at": None}
+                            )
+                            restored_token_count += 1
+                        else:
+                            raise HTTPException(
+                                status_code=status.HTTP_403_FORBIDDEN,
+                                detail={
+                                    "error": "You are not authorized to restore this key"
+                                },
+                            )
+
+                    tasks.append(_restore_key(key))
+                await asyncio.gather(*tasks)
+                restored_tokens = {"count": restored_token_count}
+
+        else:
+            raise Exception("DB not connected. prisma_client is None")
+    except Exception as e:
+        verbose_proxy_logger.exception(
+            "litellm.proxy.proxy_server.restore_verification_tokens(): Exception occured - {}".format(
+                str(e)
+            )
+        )
+        verbose_proxy_logger.debug(traceback.format_exc())
+        raise e
+
+    return {"restored_keys": restored_tokens}
+
+
+async def restore_key_aliases(
+    key_aliases: List[str],
+    user_api_key_cache: DualCache,
+    prisma_client: PrismaClient,
+    user_api_key_dict: UserAPIKeyAuth,
+) -> Optional[Dict]:
+    _keys_being_restored = await prisma_client.db.litellm_verificationtoken.find_many(
+        where={"key_alias": {"in": key_aliases}, "deleted_at": {"not": None}}
+    )
+
+    tokens = [key.token for key in _keys_being_restored]
+    return await restore_verification_tokens(
+        tokens=tokens,
+        user_api_key_cache=user_api_key_cache,
+        user_api_key_dict=user_api_key_dict,
+    )
