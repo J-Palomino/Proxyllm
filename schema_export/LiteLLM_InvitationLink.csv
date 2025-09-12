@@ -1,0 +1,13 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+id,String,Yes,No,Yes,No,uuid(,id String   @id @default(uuid())
+user_id,String,Yes,No,No,No,,user_id String
+is_accepted,Boolean,Yes,No,No,No,false,is_accepted Boolean @default(false)
+accepted_at,DateTime,No,No,No,No,,accepted_at DateTime? // when link is claimed (user successfully onboards via link)
+expires_at,DateTime,Yes,No,No,No,,expires_at  DateTime // till when is link valid
+created_at,DateTime,Yes,No,No,No,,created_at DateTime // when did admin create the link
+created_by,String,Yes,No,No,No,,created_by String // who created the link
+updated_at,DateTime,Yes,No,No,No,,updated_at DateTime // when was invite status updated
+updated_by,String,Yes,No,No,No,,updated_by String // who updated the status (admin/user who accepted invite)
+liteLLM_user_table_user,LiteLLM_UserTable,Yes,No,No,No,,"liteLLM_user_table_user    LiteLLM_UserTable  @relation(""UserId"", fields: [user_id], references: [user_id])"
+liteLLM_user_table_created,LiteLLM_UserTable,Yes,No,No,No,,"liteLLM_user_table_created LiteLLM_UserTable  @relation(""CreatedBy"", fields: [created_by], references: [user_id])"
+liteLLM_user_table_updated,LiteLLM_UserTable,Yes,No,No,No,,"liteLLM_user_table_updated LiteLLM_UserTable  @relation(""UpdatedBy"", fields: [updated_by], references: [user_id])"

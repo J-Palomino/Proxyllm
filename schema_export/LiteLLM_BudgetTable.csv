@@ -1,0 +1,19 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+budget_id,String,Yes,No,Yes,No,uuid(,budget_id String @id @default(uuid())
+max_budget,Float,No,No,No,No,,max_budget Float?
+soft_budget,Float,No,No,No,No,,soft_budget Float?
+max_parallel_requests,Int,No,No,No,No,,max_parallel_requests Int?
+tpm_limit,BigInt,No,No,No,No,,tpm_limit     BigInt?
+rpm_limit,BigInt,No,No,No,No,,rpm_limit     BigInt?
+model_max_budget,Json,No,No,No,No,,model_max_budget Json?
+budget_duration,String,No,No,No,No,,budget_duration String?
+budget_reset_at,DateTime,No,No,No,No,,budget_reset_at DateTime?
+created_at,DateTime,Yes,No,No,No,now(,"created_at    DateTime               @default(now()) @map(""created_at"")"
+created_by,String,Yes,No,No,No,,created_by String
+updated_at,DateTime,Yes,No,No,No,now(,"updated_at    DateTime               @default(now()) @updatedAt @map(""updated_at"")"
+updated_by,String,Yes,No,No,No,,updated_by String
+organization,LiteLLM_OrganizationTable,Yes,Yes,No,No,,organization LiteLLM_OrganizationTable[] // multiple orgs can have the same budget
+keys,LiteLLM_VerificationToken,Yes,Yes,No,No,,keys LiteLLM_VerificationToken[] // multiple keys can have the same budget
+end_users,LiteLLM_EndUserTable,Yes,Yes,No,No,,end_users LiteLLM_EndUserTable[] // multiple end-users can have the same budget
+team_membership,LiteLLM_TeamMembership,Yes,Yes,No,No,,team_membership LiteLLM_TeamMembership[] // budgets of Users within a Team
+organization_membership,LiteLLM_OrganizationMembership,Yes,Yes,No,No,,organization_membership LiteLLM_OrganizationMembership[] // budgets of Users within a Organization

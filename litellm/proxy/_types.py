@@ -2313,6 +2313,17 @@ class AllCallbacks(LiteLLMPydanticObjectBase):
         ui_callback_name="Lago Billing",
     )
 
+    stripe: CallbackOnUI = CallbackOnUI(
+        litellm_callback_name="stripe",
+        litellm_callback_params=[
+            "STRIPE_API_KEY",
+            "STRIPE_PRICE_ID",
+            "STRIPE_CHARGE_BY",
+            "STRIPE_API_BASE",
+        ],
+        ui_callback_name="Stripe Billing",
+    )
+
 
 class SpendLogsMetadata(TypedDict):
     """

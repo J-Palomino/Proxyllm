@@ -129,6 +129,7 @@ from ..integrations.greenscale import GreenscaleLogger
 from ..integrations.helicone import HeliconeLogger
 from ..integrations.humanloop import HumanloopLogger
 from ..integrations.lago import LagoLogger
+from ..integrations.stripe import StripeLogger
 from ..integrations.langfuse.langfuse import LangFuseLogger
 from ..integrations.langfuse.langfuse_handler import LangFuseHandler
 from ..integrations.langfuse.langfuse_prompt_management import LangfusePromptManagement
@@ -3182,6 +3183,14 @@ def _init_custom_logger_compatible_class(  # noqa: PLR0915
             lago_logger = LagoLogger()
             _in_memory_loggers.append(lago_logger)
             return lago_logger  # type: ignore
+        elif logging_integration == "stripe":
+            for callback in _in_memory_loggers:
+                if isinstance(callback, StripeLogger):
+                    return callback  # type: ignore
+
+            stripe_logger = StripeLogger()
+            _in_memory_loggers.append(stripe_logger)
+            return stripe_logger  # type: ignore
         elif logging_integration == "openmeter":
             for callback in _in_memory_loggers:
                 if isinstance(callback, OpenMeterLogger):

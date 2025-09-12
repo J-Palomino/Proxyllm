@@ -1,0 +1,5 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+organization_id,String,Yes,No,Yes,No,uuid(,organization_id String @id @default(uuid())
+organization_alias,String,Yes,No,No,No,,organization_alias  String
+budget_id,String,Yes,No,No,No,,budget_id String
+metadata,Json,Yes,No,No,No,,"metadata  Json  @default(""{"

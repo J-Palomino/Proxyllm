@@ -1,0 +1,14 @@
+Feature Category,LiteLLM Support,Daisy Support,LiteLLM Implementation,Daisy Implementation
+User Management,Yes,Yes,"LiteLLM_UserTable, LiteLLM_TeamTable","User, ApiKey"
+API Key Management,Yes,Yes,LiteLLM_VerificationToken,ApiKey
+Usage Tracking,Yes,Limited,"LiteLLM_SpendLogs, Daily*Spend tables",Execution
+Billing & Budgets,Yes,No,"LiteLLM_BudgetTable, spend tracking",Not present
+Chat/Messaging,No,Yes,Not present,"ChatMessage, ChatFlow"
+Document Management,Limited,Yes,LiteLLM_ManagedFileTable,"DocumentStore, DocumentStoreFileChunk"
+Workflow Management,No,Yes,Not present,"ChatFlow, Execution, ScheduledTask"
+AI Model Management,Yes,Yes,LiteLLM_ProxyModelTable,"Assistant, Evaluator"
+Audit Logging,Yes,Limited,LiteLLM_AuditLog,UpsertHistory
+Organization Support,Yes,No,LiteLLM_OrganizationTable,Not present
+Content Filtering,Yes,No,LiteLLM_GuardrailsTable,Not present
+Template System,Limited,Yes,LiteLLM_PromptTable,CustomTemplate
+Evaluation Framework,No,Yes,Not present,"Evaluation, EvaluationRun, Dataset"

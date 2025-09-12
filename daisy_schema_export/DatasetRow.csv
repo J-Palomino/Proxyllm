@@ -1,0 +1,7 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+datasetId,string,{ type:,No,No,No,No,,@Column({ type: 'text' })     @Index()
+input,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+output,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+updatedDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP ON UPDATE,@UpdateDateColumn()
+sequenceNo,number,{ name:,No,No,No,No,,@Column({ name: 'sequence_no' })

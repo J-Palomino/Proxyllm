@@ -1,0 +1,8 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+team_id,String,Yes,No,Yes,No,uuid(,team_id    String @id @default(uuid())
+team_alias,String,No,No,No,No,,team_alias  String?
+organization_id,String,No,No,No,No,,organization_id String?
+object_permission_id,String,No,No,No,No,,object_permission_id String?
+admins,String,Yes,Yes,No,No,,admins String[]
+members,String,Yes,Yes,No,No,,members String[]
+members_with_roles,Json,Yes,No,No,No,,"members_with_roles Json @default(""{"

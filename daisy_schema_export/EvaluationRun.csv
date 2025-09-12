@@ -1,0 +1,11 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+evaluationId,string,),No,No,No,No,,@Column()
+input,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+expectedOutput,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+runDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP ON UPDATE,@UpdateDateColumn()
+actualOutput,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+metrics,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+llmEvaluators,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+evaluators,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+errors,string,{ type:,No,No,No,No,,@Column({ type: 'text' })

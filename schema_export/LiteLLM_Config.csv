@@ -1,0 +1,3 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+param_name,String,Yes,No,Yes,No,,param_name String @id
+param_value,Json,No,No,No,No,,param_value Json?

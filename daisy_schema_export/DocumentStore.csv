@@ -1,0 +1,13 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+name,string,{ nullable: false,No,No,No,No,,"@Column({ nullable: false, type: 'text' })"
+description,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+loaders,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+whereUsed,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+createdDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP,@Column({ type: 'timestamp' })     @CreateDateColumn()
+updatedDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP ON UPDATE,@Column({ type: 'timestamp' })     @UpdateDateColumn()
+status,DocumentStoreStatus,{ nullable: false,No,No,No,No,,"@Column({ nullable: false, type: 'text' })"
+vectorStoreConfig,string | null,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+embeddingConfig,string | null,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+recordManagerConfig,string | null,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+workspaceId,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"

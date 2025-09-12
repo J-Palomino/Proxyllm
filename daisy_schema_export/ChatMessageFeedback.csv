@@ -1,0 +1,8 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+chatflowid,string,{ type:,No,No,No,No,,@Column({ type: 'uuid' })
+chatId,string,{ type:,No,No,No,No,,@Column({ type: 'varchar' })
+messageId,string,{ type:,No,No,No,No,,@Column({ type: 'uuid' })
+rating,ChatMessageRatingType,{ nullable: true }),No,Yes,No,No,,@Column({ nullable: true })
+content,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+createdDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP,@Column({ type: 'timestamp' })     @CreateDateColumn()

@@ -1,0 +1,9 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+object_permission_id,String,Yes,No,Yes,No,uuid(,object_permission_id  String         @id @default(uuid())
+mcp_servers,String,Yes,Yes,No,No,[],mcp_servers           String[]       @default([])
+mcp_access_groups,String,Yes,Yes,No,No,[],mcp_access_groups     String[]       @default([])
+vector_stores,String,Yes,Yes,No,No,[],vector_stores         String[]       @default([])
+teams,LiteLLM_TeamTable,Yes,Yes,No,No,,teams                 LiteLLM_TeamTable[]
+verification_tokens,LiteLLM_VerificationToken,Yes,Yes,No,No,,verification_tokens   LiteLLM_VerificationToken[]
+organizations,LiteLLM_OrganizationTable,Yes,Yes,No,No,,organizations         LiteLLM_OrganizationTable[]
+users,LiteLLM_UserTable,Yes,Yes,No,No,,users                 LiteLLM_UserTable[]

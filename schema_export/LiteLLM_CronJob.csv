@@ -1,0 +1,6 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+cronjob_id,String,Yes,No,Yes,No,cuid(,cronjob_id            String   @id @default(cuid()) // Unique ID for the record
+pod_id,String,Yes,No,No,No,,pod_id         String   // Unique identifier for the pod acting as the leader
+status,JobStatus,Yes,No,No,No,INACTIVE,status        JobStatus @default(INACTIVE) // Status of the cron job (active or inactive)
+last_updated,DateTime,Yes,No,No,No,now(,last_updated   DateTime @default(now()) // Timestamp for the last update of the cron job record
+ttl,DateTime,Yes,No,No,No,,ttl           DateTime // Time when the leader's lease expires

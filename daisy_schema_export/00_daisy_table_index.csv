@@ -1,0 +1,22 @@
+#,Entity Name,Table Name,Description,Column Count
+1,ApiKey,apikey,API key management for authentication,5
+2,Assistant,assistant,AI assistant configurations,8
+3,ChatFlow,chatflow,Chat flow definitions and workflows,16
+4,ChatMessage,chatmessage,Chat message history and content,20
+5,ChatMessageFeedback,chatmessagefeedback,User feedback on chat messages,7
+6,Credential,credential,Stored credentials for various services,7
+7,CustomTemplate,custom_template,Custom templates for workflows,11
+8,Dataset,dataset,Dataset management for training/evaluation,6
+9,DatasetRow,datasetrow,Individual rows within datasets,6
+10,DocumentStore,documentstore,Document storage and management,12
+11,DocumentStoreFileChunk,documentstorefilechunk,File chunks for document processing,6
+12,Evaluation,evaluation,Evaluation configurations and settings,12
+13,EvaluationRun,evaluationrun,Individual evaluation run instances,10
+14,Evaluator,evaluator,Evaluator configurations,7
+15,Execution,execution,Execution logs and tracking,18
+16,Lead,lead,Lead management and tracking,7
+17,PhoneNumber,phonenumber,Phone number management,5
+18,ScheduledTask,scheduledtask,Scheduled task management,10
+19,Tool,tool,Tool definitions and configurations,10
+20,UpsertHistory,upserthistory,History of upsert operations,5
+21,Variable,variable,Variable definitions for workflows,7

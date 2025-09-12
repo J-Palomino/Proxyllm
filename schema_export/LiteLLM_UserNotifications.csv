@@ -1,0 +1,6 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+request_id,String,Yes,No,Yes,No,,request_id          String @id
+user_id,String,Yes,No,No,No,,user_id             String
+models,String,Yes,Yes,No,No,,models              String[]
+justification,String,Yes,No,No,No,,justification       String
+status,String,Yes,No,No,No,,"status              String // approved, disapproved, pending"

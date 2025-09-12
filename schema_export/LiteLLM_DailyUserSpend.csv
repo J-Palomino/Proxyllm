@@ -1,0 +1,19 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+id,String,Yes,No,Yes,No,uuid(,id                  String   @id @default(uuid())
+user_id,String,No,No,No,No,,user_id             String?
+date,String,Yes,No,No,No,,date                String
+api_key,String,Yes,No,No,No,,api_key             String
+model,String,No,No,No,No,,model               String?
+model_group,String,No,No,No,No,,model_group         String?
+custom_llm_provider,String,No,No,No,No,,custom_llm_provider String?
+mcp_namespaced_tool_name,String,No,No,No,No,,mcp_namespaced_tool_name String?
+prompt_tokens,BigInt,Yes,No,No,No,0,prompt_tokens       BigInt      @default(0)
+completion_tokens,BigInt,Yes,No,No,No,0,completion_tokens   BigInt      @default(0)
+cache_read_input_tokens,BigInt,Yes,No,No,No,0,cache_read_input_tokens     BigInt      @default(0)
+cache_creation_input_tokens,BigInt,Yes,No,No,No,0,cache_creation_input_tokens BigInt      @default(0)
+spend,Float,Yes,No,No,No,0.0,spend               Float    @default(0.0)
+api_requests,BigInt,Yes,No,No,No,0,api_requests        BigInt      @default(0)
+successful_requests,BigInt,Yes,No,No,No,0,successful_requests BigInt      @default(0)
+failed_requests,BigInt,Yes,No,No,No,0,failed_requests     BigInt      @default(0)
+created_at,DateTime,Yes,No,No,No,now(,created_at          DateTime @default(now())
+updated_at,DateTime,Yes,No,No,No,,updated_at          DateTime @updatedAt

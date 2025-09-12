@@ -1,0 +1,7 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+name,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+description,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+createdDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP,@CreateDateColumn()
+updatedDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP ON UPDATE,@UpdateDateColumn()
+workspaceId,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"

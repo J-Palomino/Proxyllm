@@ -1,0 +1,22 @@
+Entity Name,Table Name,Column Count,Primary Key Fields,Export File
+ApiKey,apikey,5,None,ApiKey.csv
+Assistant,assistant,8,id,Assistant.csv
+ChatFlow,chatflow,16,id,ChatFlow.csv
+ChatMessage,chatmessage,20,id,ChatMessage.csv
+ChatMessageFeedback,chatmessagefeedback,7,id,ChatMessageFeedback.csv
+Credential,credential,7,id,Credential.csv
+CustomTemplate,custom_template,11,id,CustomTemplate.csv
+Dataset,dataset,6,id,Dataset.csv
+DatasetRow,datasetrow,6,id,DatasetRow.csv
+DocumentStore,documentstore,12,id,DocumentStore.csv
+DocumentStoreFileChunk,documentstorefilechunk,6,id,DocumentStoreFileChunk.csv
+Evaluation,evaluation,12,id,Evaluation.csv
+EvaluationRun,evaluationrun,10,id,EvaluationRun.csv
+Evaluator,evaluator,7,id,Evaluator.csv
+Execution,execution,18,id,Execution.csv
+Lead,lead,7,id,Lead.csv
+PhoneNumber,phonenumber,5,id,PhoneNumber.csv
+ScheduledTask,scheduledtask,10,id,ScheduledTask.csv
+Tool,tool,10,id,Tool.csv
+UpsertHistory,upserthistory,5,id,UpsertHistory.csv
+Variable,variable,7,id,Variable.csv

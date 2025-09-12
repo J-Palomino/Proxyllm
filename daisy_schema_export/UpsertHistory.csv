@@ -1,0 +1,6 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+chatflowid,string,),No,No,No,No,,@Column()
+result,string,),No,No,No,No,,@Column()
+flowData,string,),No,No,No,No,,@Column()
+date,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP,@CreateDateColumn()

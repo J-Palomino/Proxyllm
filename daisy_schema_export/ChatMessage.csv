@@ -1,0 +1,21 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+role,MessageType,),No,No,No,No,,@Column()
+chatflowid,string,{ type:,No,No,No,No,,@Column({ type: 'uuid' })
+executionId,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'uuid' })"
+execution,Execution,text,No,No,No,Yes,,@OneToOne(() => Execution)     @JoinColumn({ name: 'executionId' })
+content,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+sourceDocuments,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+usedTools,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+fileAnnotations,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+agentReasoning,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+fileUploads,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+artifacts,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+action,string | null,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+chatType,string,),No,No,No,No,,@Column()
+chatId,string,{ type:,No,No,No,No,,@Column({ type: 'varchar' })
+memoryType,string,{ nullable: true }),No,Yes,No,No,,@Column({ nullable: true })
+sessionId,string,{ type:,No,Yes,No,No,,"@Column({ type: 'varchar', nullable: true })"
+createdDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP,@Column({ type: 'timestamp' })     @CreateDateColumn()
+leadEmail,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"
+followUpPrompts,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"

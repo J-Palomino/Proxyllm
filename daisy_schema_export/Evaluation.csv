@@ -1,0 +1,13 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+average_metrics,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+additionalConfig,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+name,string,),No,No,No,No,,@Column()
+evaluationType,string,),No,No,No,No,,@Column()
+chatflowId,string,),No,No,No,No,,@Column()
+chatflowName,string,),No,No,No,No,,@Column()
+datasetId,string,),No,No,No,No,,@Column()
+datasetName,string,),No,No,No,No,,@Column()
+status,string,),No,No,No,No,,@Column()
+runDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP ON UPDATE,@UpdateDateColumn()
+workspaceId,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"

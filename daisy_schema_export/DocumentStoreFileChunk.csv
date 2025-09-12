@@ -1,0 +1,7 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+docId,string,{ type:,No,No,No,No,,@Column({ type: 'uuid' })
+storeId,string,{ type:,No,No,No,No,,@Column({ type: 'uuid' })
+chunkNo,number,),No,No,No,No,,@Column()
+pageContent,string,{ nullable: false,No,No,No,No,,"@Column({ nullable: false, type: 'text' })"
+metadata,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"

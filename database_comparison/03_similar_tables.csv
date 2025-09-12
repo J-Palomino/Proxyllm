@@ -1,0 +1,29 @@
+LiteLLM Table,LiteLLM Cols,Daisy Entity,Daisy Cols,Similarity Score,Analysis
+LiteLLM_CredentialsTable,8,Credential,7,1.07,Similar complexity; Similar PK pattern
+LiteLLM_AuditLog,9,UpsertHistory,5,0.68,LiteLLM more complex; Similar PK pattern
+LiteLLM_ErrorLogs,8,UpsertHistory,5,0.66,LiteLLM more complex; Similar PK pattern
+LiteLLM_GuardrailsTable,6,Variable,7,0.61,Similar complexity; Similar PK pattern
+LiteLLM_DailyTagSpend,18,Dataset,6,0.60,LiteLLM more complex; Similar PK pattern
+LiteLLM_TeamTable,7,Variable,7,0.59,Similar complexity; Similar PK pattern
+LiteLLM_UserTable,14,Variable,7,0.59,LiteLLM more complex; Similar PK pattern
+LiteLLM_SpendLogs,17,UpsertHistory,5,0.57,LiteLLM more complex; Similar PK pattern
+LiteLLM_VerificationToken,8,ApiKey,5,0.56,LiteLLM more complex
+LiteLLM_PromptTable,6,Variable,7,0.53,Similar complexity; Similar PK pattern
+LiteLLM_InvitationLink,12,EvaluationRun,10,0.52,Similar complexity; Similar PK pattern
+LiteLLM_ModelTable,7,Assistant,8,0.51,Similar complexity; Similar PK pattern
+LiteLLM_MCPServerTable,13,Credential,7,0.50,LiteLLM more complex; Similar PK pattern
+LiteLLM_EndUserTable,8,Variable,7,0.50,Similar complexity; Similar PK pattern
+LiteLLM_ManagedFileTable,9,Variable,7,0.50,Similar complexity; Similar PK pattern
+LiteLLM_OrganizationTable,4,Variable,7,0.48,Daisy more complex; Similar PK pattern
+LiteLLM_BudgetTable,18,Credential,7,0.48,LiteLLM more complex; Similar PK pattern
+LiteLLM_ProxyModelTable,8,Assistant,8,0.47,Similar complexity; Similar PK pattern
+LiteLLM_UserNotifications,5,Evaluation,12,0.44,Daisy more complex; Similar PK pattern
+LiteLLM_DailyTeamSpend,18,Lead,7,0.44,LiteLLM more complex; Similar PK pattern
+LiteLLM_Config,2,Variable,7,0.44,Daisy more complex
+LiteLLM_ManagedVectorStoresTable,9,DocumentStoreFileChunk,6,0.43,LiteLLM more complex; Similar PK pattern
+LiteLLM_ManagedObjectTable,10,Credential,7,0.43,LiteLLM more complex; Similar PK pattern
+LiteLLM_OrganizationMembership,10,PhoneNumber,5,0.42,LiteLLM more complex
+LiteLLM_DailyUserSpend,18,DatasetRow,6,0.42,LiteLLM more complex; Similar PK pattern
+LiteLLM_HealthCheckTable,13,Variable,7,0.42,LiteLLM more complex; Similar PK pattern
+LiteLLM_ObjectPermissionTable,8,Variable,7,0.41,Similar complexity; Similar PK pattern
+LiteLLM_TeamMembership,5,PhoneNumber,5,0.40,Similar complexity

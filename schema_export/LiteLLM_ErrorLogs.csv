@@ -1,0 +1,9 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+request_id,String,Yes,No,Yes,No,uuid(,request_id          String   @id @default(uuid())
+startTime,DateTime,Yes,No,No,No,,startTime           DateTime // Assuming start_time is a DateTime field
+endTime,DateTime,Yes,No,No,No,,endTime             DateTime // Assuming end_time is a DateTime field
+api_base,String,Yes,No,No,No,"""""","api_base            String   @default("""")"
+model_group,String,Yes,No,No,No,"""""","model_group         String   @default("""")      // public model_name / model_group"
+litellm_model_name,String,Yes,No,No,No,"""""","litellm_model_name  String   @default("""")      // model passed to litellm"
+model_id,String,Yes,No,No,No,"""""","model_id            String   @default("""")      // ID of model in ProxyModelTable"
+request_kwargs,Json,Yes,No,No,No,,"request_kwargs      Json     @default(""{"

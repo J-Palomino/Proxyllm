@@ -1,0 +1,9 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+token,String,Yes,No,Yes,No,,token      String   @id
+key_name,String,No,No,No,No,,key_name   String?
+key_alias,String,No,No,No,No,,key_alias   String?
+soft_budget_cooldown,Boolean,Yes,No,No,No,false,soft_budget_cooldown Boolean @default(false) // key-level state on if budget alerts need to be cooled down
+spend,Float,Yes,No,No,No,0.0,spend      Float    @default(0.0)
+expires,DateTime,No,No,No,No,,expires    DateTime?
+models,String,Yes,Yes,No,No,,models     String[]
+aliases,Json,Yes,No,No,No,,"aliases    Json  @default(""{"

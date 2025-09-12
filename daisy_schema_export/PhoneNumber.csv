@@ -1,0 +1,6 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+id,string,text,Yes,No,No,No,,@PrimaryGeneratedColumn('uuid')
+phoneNumber,string,{ type:,No,No,Yes,No,,"@Column({ type: 'varchar', length: 20, unique: true })"
+allocatedToAccountId,string | null,{ type:,No,Yes,No,No,,"@Column({ type: 'uuid', nullable: true })"
+createdDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP,@CreateDateColumn()
+updatedDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP ON UPDATE,@UpdateDateColumn()

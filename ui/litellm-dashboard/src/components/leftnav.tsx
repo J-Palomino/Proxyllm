@@ -99,6 +99,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       children: [
         { key: "18", page: "mcp-servers", label: "MCP Servers", icon: <ToolOutlined style={{ fontSize: '18px' }} /> },
         { key: "21", page: "vector-stores", label: "Vector Stores", icon: <DatabaseOutlined style={{ fontSize: '18px' }} />, roles: all_admin_roles },
+        { key: "27", page: "stripe-meters", label: "Stripe Meters", icon: <ThunderboltOutlined style={{ fontSize: '18px' }} />, roles: all_admin_roles },
       ]
     },
     { 

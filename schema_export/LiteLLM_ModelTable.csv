@@ -1,0 +1,8 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+id,Int,Yes,No,Yes,No,autoincrement(,id Int @id @default(autoincrement())
+model_aliases,Json,No,No,No,No,,"model_aliases Json? @map(""aliases"")"
+created_at,DateTime,Yes,No,No,No,now(,"created_at    DateTime               @default(now()) @map(""created_at"")"
+created_by,String,Yes,No,No,No,,created_by String
+updated_at,DateTime,Yes,No,No,No,now(,"updated_at    DateTime               @default(now()) @updatedAt @map(""updated_at"")"
+updated_by,String,Yes,No,No,No,,updated_by String
+team,LiteLLM_TeamTable,No,No,No,No,,team LiteLLM_TeamTable?

@@ -1,0 +1,6 @@
+Field Name,TypeScript Type,Database Type,Primary Key,Nullable,Unique,Relation,Default Value,Decorators
+apiKey,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+apiSecret,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+keyName,string,{ type:,No,No,No,No,,@Column({ type: 'text' })
+updatedDate,Date,timestamp,No,No,No,No,CURRENT_TIMESTAMP ON UPDATE,@Column({ type: 'timestamp' })     @UpdateDateColumn()
+workspaceId,string,{ nullable: true,No,Yes,No,No,,"@Column({ nullable: true, type: 'text' })"

@@ -1,0 +1,30 @@
+#,Table Name,Description,Key Fields
+1,LiteLLM_AuditLog,Audit trail for changes,id
+2,LiteLLM_BudgetTable,Budget and rate limits for organizations,budget_id
+3,LiteLLM_Config,Proxy configuration storage,param_name
+4,LiteLLM_CredentialsTable,API credentials for different providers,"credential_id, credential_name"
+5,LiteLLM_CronJob,Cron job management,cronjob_id
+6,LiteLLM_DailyTagSpend,Daily tag-based spending metrics,id
+7,LiteLLM_DailyTeamSpend,Daily team spending metrics,id
+8,LiteLLM_DailyUserSpend,Daily user spending metrics,id
+9,LiteLLM_EndUserTable,End user management and limits,user_id
+10,LiteLLM_ErrorLogs,Error tracking and debugging,request_id
+11,LiteLLM_GuardrailsTable,Guardrail configurations,"guardrail_id, guardrail_name"
+12,LiteLLM_HealthCheckTable,Model health check tracking,health_check_id
+13,LiteLLM_InvitationLink,Invitation link management,id
+14,LiteLLM_MCPServerTable,MCP server configurations,server_id
+15,LiteLLM_ManagedFileTable,File management,"id, unified_file_id"
+16,LiteLLM_ManagedObjectTable,Object management for batches/fine-tuning,"id, unified_object_id, model_object_id"
+17,LiteLLM_ManagedVectorStoresTable,Vector store management,vector_store_id
+18,LiteLLM_ModelTable,Model aliases and team associations,id
+19,LiteLLM_ObjectPermissionTable,Object-level permissions,object_permission_id
+20,LiteLLM_OrganizationMembership,Organization membership,
+21,LiteLLM_OrganizationTable,Organization management and settings,organization_id
+22,LiteLLM_PromptTable,Prompt configurations,"id, prompt_id"
+23,LiteLLM_ProxyModelTable,Model configurations and parameters,model_id
+24,LiteLLM_SpendLogs,Request spending and usage logs,request_id
+25,LiteLLM_TeamMembership,Team membership tracking,
+26,LiteLLM_TeamTable,Team management and permissions,team_id
+27,LiteLLM_UserNotifications,User notification system,request_id
+28,LiteLLM_UserTable,User accounts and access control,"user_id, sso_user_id"
+29,LiteLLM_VerificationToken,API keys and access tokens,token

@@ -1,0 +1,15 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+user_id,String,Yes,No,Yes,No,,user_id    String @id
+user_alias,String,No,No,No,No,,user_alias String?
+team_id,String,No,No,No,No,,team_id    String?
+sso_user_id,String,No,No,No,Yes,,sso_user_id String? @unique
+organization_id,String,No,No,No,No,,organization_id String?
+object_permission_id,String,No,No,No,No,,object_permission_id String?
+password,String,No,No,No,No,,password  String?
+teams,String,Yes,Yes,No,No,[],teams    String[] @default([])
+user_role,String,No,No,No,No,,user_role  String?
+max_budget,Float,No,No,No,No,,max_budget Float?
+spend,Float,Yes,No,No,No,0.0,spend      Float    @default(0.0)
+user_email,String,No,No,No,No,,user_email    String?
+models,String,Yes,Yes,No,No,,models     String[]
+metadata,Json,Yes,No,No,No,,"metadata  Json  @default(""{"

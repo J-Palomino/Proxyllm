@@ -1,0 +1,14 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+server_id,String,Yes,No,Yes,No,uuid(,server_id    String         @id @default(uuid())
+server_name,String,No,No,No,No,,server_name  String?
+alias,String,No,No,No,No,,alias        String?
+description,String,No,No,No,No,,description  String?
+url,String,No,No,No,No,,url          String?
+transport,String,Yes,No,No,No,"""sse""","transport    String         @default(""sse"")"
+spec_version,String,Yes,No,No,No,"""2025-03-26""","spec_version String         @default(""2025-03-26"")"
+auth_type,String,No,No,No,No,,auth_type    String?
+created_at,DateTime,No,No,No,No,now(,"created_at   DateTime?      @default(now()) @map(""created_at"")"
+created_by,String,No,No,No,No,,created_by   String?
+updated_at,DateTime,No,No,No,No,now(,"updated_at   DateTime?      @default(now()) @updatedAt @map(""updated_at"")"
+updated_by,String,No,No,No,No,,updated_by   String?
+mcp_info,Json,No,No,No,No,,"mcp_info     Json?          @default(""{"

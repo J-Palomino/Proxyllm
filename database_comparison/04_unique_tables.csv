@@ -1,0 +1,11 @@
+Table/Entity Name,Project,Columns,Purpose Category,Unique Features
+LiteLLM_CronJob,LiteLLM,5,System Management,
+ChatFlow,Daisy,16,Content Management,Conversational AI features
+ChatMessage,Daisy,20,Content Management,Conversational AI features
+ChatMessageFeedback,Daisy,7,Content Management,Conversational AI features
+CustomTemplate,Daisy,11,Content Management,
+DocumentStore,Daisy,12,Content Management,Document processing & storage
+Evaluator,Daisy,7,Other,
+Execution,Daisy,18,Workflow Management,
+ScheduledTask,Daisy,10,Workflow Management,
+Tool,Daisy,10,Other,

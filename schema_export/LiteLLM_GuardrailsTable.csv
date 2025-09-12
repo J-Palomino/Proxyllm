@@ -1,0 +1,7 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+guardrail_id,String,Yes,No,Yes,No,uuid(,guardrail_id String @id @default(uuid())
+guardrail_name,String,Yes,No,No,Yes,,guardrail_name String @unique
+litellm_params,Json,Yes,No,No,No,,litellm_params Json
+guardrail_info,Json,No,No,No,No,,guardrail_info Json?
+created_at,DateTime,Yes,No,No,No,now(,created_at DateTime @default(now())
+updated_at,DateTime,Yes,No,No,No,,updated_at DateTime @updatedAt

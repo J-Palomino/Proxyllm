@@ -1,0 +1,6 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+user_id,String,Yes,No,No,No,,user_id    String
+team_id,String,Yes,No,No,No,,team_id    String
+spend,Float,Yes,No,No,No,0.0,spend      Float    @default(0.0)
+budget_id,String,No,No,No,No,,budget_id String?
+litellm_budget_table,LiteLLM_BudgetTable,No,No,No,No,,"litellm_budget_table LiteLLM_BudgetTable?   @relation(fields: [budget_id], references: [budget_id])"

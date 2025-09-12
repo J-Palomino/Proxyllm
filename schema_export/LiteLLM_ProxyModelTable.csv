@@ -1,0 +1,9 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+model_id,String,Yes,No,Yes,No,uuid(,model_id String @id @default(uuid())
+model_name,String,Yes,No,No,No,,model_name String
+litellm_params,Json,Yes,No,No,No,,litellm_params Json
+model_info,Json,No,No,No,No,,model_info Json?
+created_at,DateTime,Yes,No,No,No,now(,"created_at    DateTime               @default(now()) @map(""created_at"")"
+created_by,String,Yes,No,No,No,,created_by String
+updated_at,DateTime,Yes,No,No,No,now(,"updated_at    DateTime               @default(now()) @updatedAt @map(""updated_at"")"
+updated_by,String,Yes,No,No,No,,updated_by String

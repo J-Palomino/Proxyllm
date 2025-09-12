@@ -1,0 +1,11 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+id,String,Yes,No,Yes,No,uuid(,id String @id @default(uuid())
+unified_object_id,String,Yes,No,No,Yes,,unified_object_id String @unique // The base64 encoded unified file ID
+model_object_id,String,Yes,No,No,Yes,,model_object_id String @unique // the id returned by the backend API provider
+file_object,Json,Yes,No,No,No,,file_object Json // Stores the OpenAIFileObject
+file_purpose,String,Yes,No,No,No,,file_purpose String // either 'batch' or 'fine-tune'
+status,String,No,No,No,No,,status String? // check if batch cost has been tracked
+created_at,DateTime,Yes,No,No,No,now(,created_at DateTime @default(now())
+created_by,String,No,No,No,No,,created_by String?
+updated_at,DateTime,Yes,No,No,No,,updated_at DateTime @updatedAt
+updated_by,String,No,No,No,No,,updated_by String?

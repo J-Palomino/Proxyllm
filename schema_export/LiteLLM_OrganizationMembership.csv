@@ -1,0 +1,11 @@
+Field Name,Type,Required,Array,Primary Key,Unique,Default Value,Raw Definition
+user_id,String,Yes,No,No,No,,user_id         String
+organization_id,String,Yes,No,No,No,,organization_id String
+user_role,String,No,No,No,No,,user_role       String?
+spend,Float,No,No,No,No,0.0,spend           Float?    @default(0.0)
+budget_id,String,No,No,No,No,,budget_id       String?
+created_at,DateTime,No,No,No,No,now(,"created_at      DateTime?               @default(now()) @map(""created_at"")"
+updated_at,DateTime,No,No,No,No,now(,"updated_at      DateTime?               @default(now()) @updatedAt @map(""updated_at"")"
+user,LiteLLM_UserTable,Yes,No,No,No,,"user LiteLLM_UserTable @relation(fields: [user_id], references: [user_id])"
+organization,LiteLLM_OrganizationTable,Yes,No,No,No,,"organization LiteLLM_OrganizationTable @relation(""OrganizationToMembership"", fields: [organization_id], references: [organization_id])"
+litellm_budget_table,LiteLLM_BudgetTable,No,No,No,No,,"litellm_budget_table LiteLLM_BudgetTable?   @relation(fields: [budget_id], references: [budget_id])"
