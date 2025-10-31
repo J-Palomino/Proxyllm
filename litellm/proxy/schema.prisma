@@ -1,5 +1,5 @@
 datasource client {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -548,4 +548,48 @@ model LiteLLM_HealthCheckTable {
   @@index([model_name])
   @@index([checked_at])
   @@index([status])
+}
+
+// Stripe prepaid credits/balance table
+model LiteLLM_StripeBalanceTable {
+  id String @id @default(uuid())
+  customer_type String // "user_id", "team_id", or "end_user_id"
+  customer_id String // The actual user_id, team_id, or end_user_id value
+  stripe_customer_id String @unique // Stripe customer ID for this customer
+  balance Float @default(0.0) // Current prepaid balance in USD
+  total_topups Float @default(0.0) // Total amount topped up (lifetime)
+  total_spent Float @default(0.0) // Total amount spent from balance (lifetime)
+  low_balance_threshold Float? // Alert when balance goes below this
+  auto_topup_enabled Boolean @default(false) // Enable automatic top-up
+  auto_topup_amount Float? // Amount to top-up when balance is low
+  auto_topup_payment_method_id String? // Stripe payment method for auto top-up
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([customer_type, customer_id])
+  @@index([stripe_customer_id])
+  @@index([customer_id])
+}
+
+// Stripe transaction history for top-ups and deductions
+model LiteLLM_StripeTransactionTable {
+  transaction_id String @id @default(uuid())
+  customer_type String // "user_id", "team_id", or "end_user_id"
+  customer_id String // The actual user_id, team_id, or end_user_id value
+  stripe_customer_id String // Stripe customer ID
+  transaction_type String // "topup", "deduction", "refund"
+  amount Float // Amount in USD (positive for topup, negative for deduction)
+  balance_before Float // Balance before transaction
+  balance_after Float // Balance after transaction
+  stripe_payment_intent_id String? // Stripe payment intent ID for topups
+  stripe_checkout_session_id String? // Stripe checkout session ID for topups
+  request_id String? // LiteLLM request ID for deductions
+  description String? // Human-readable description
+  metadata Json? @default("{}")
+  created_at DateTime @default(now())
+
+  @@index([customer_id])
+  @@index([stripe_customer_id])
+  @@index([stripe_payment_intent_id])
+  @@index([created_at])
 }
