@@ -120,7 +120,7 @@ class StripeAPIHelper:
         endpoint: str,
         method: str = "GET",
         data: Optional[Dict] = None,
-        api_version: str = "2024-10-28.acacia"
+        api_version: str = "2025-09-30.clover"
     ) -> Dict:
         """Make a request to the Stripe API"""
         url = f"https://api.stripe.com/v1/{endpoint}"
