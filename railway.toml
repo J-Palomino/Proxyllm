@@ -1,0 +1,16 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "--port 4000"
+healthcheckPath = "/health"
+healthcheckTimeout = 300
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 3
+
+[[services]]
+name = "litellm"
+
+[services.env]
+PORT = "4000"
