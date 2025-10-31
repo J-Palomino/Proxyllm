@@ -116,11 +116,11 @@ class StripeAPIHelper:
 
     @staticmethod
     def make_stripe_request(
-        api_key: str, 
-        endpoint: str, 
-        method: str = "GET", 
+        api_key: str,
+        endpoint: str,
+        method: str = "GET",
         data: Optional[Dict] = None,
-        api_version: str = "2024-11-20.basil"
+        api_version: str = "2024-11-20"
     ) -> Dict:
         """Make a request to the Stripe API"""
         url = f"https://api.stripe.com/v1/{endpoint}"
