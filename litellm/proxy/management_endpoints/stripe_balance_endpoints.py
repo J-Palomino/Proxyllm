@@ -346,6 +346,55 @@ async def get_transactions(
     ]
 
 
+@router.get(
+    "/stripe/balances/all",
+    tags=["Stripe Balance"],
+    dependencies=[Depends(user_api_key_auth)],
+)
+async def get_all_balances(
+    user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
+):
+    """
+    Admin endpoint: Get all user balances
+
+    Requires admin role
+    """
+    from litellm.proxy.proxy_server import prisma_client, general_settings
+
+    if prisma_client is None:
+        raise HTTPException(status_code=500, detail="Database not initialized")
+
+    # Check if user is admin
+    if user_api_key_dict.user_role not in ["proxy_admin", "proxy_admin_viewer"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Only admins can view all balances"
+        )
+
+    # Get all balance records
+    balances = await prisma_client.db.litellm_stripebalancetable.find_many(
+        order={"updated_at": "desc"},
+    )
+
+    return {
+        "balances": [
+            {
+                "id": b["id"],
+                "customer_id": b["customer_id"],
+                "customer_type": b["customer_type"],
+                "stripe_customer_id": b["stripe_customer_id"],
+                "balance": b["balance"],
+                "total_topups": b["total_topups"],
+                "total_spent": b["total_spent"],
+                "low_balance_threshold": b.get("low_balance_threshold"),
+                "created_at": b["created_at"].isoformat() if b.get("created_at") else None,
+                "updated_at": b["updated_at"].isoformat() if b.get("updated_at") else None,
+            }
+            for b in balances
+        ]
+    }
+
+
 @router.post(
     "/stripe/webhook",
     tags=["Stripe Balance"],

@@ -235,7 +235,14 @@ const StripeMeterManagement: React.FC<StripeMeterManagementProps> = ({
   // Create a new meter
   const createMeter = async (values: any) => {
     try {
-      const meterData = {
+      const meterData: {
+        display_name: string;
+        event_name: string;
+        description?: string;
+        customer_mapping_key: string;
+        aggregation_formula: string;
+        [key: string]: any;
+      } = {
         display_name: values.display_name,
         event_name: values.event_name,
         description: values.description,
@@ -264,7 +271,11 @@ const StripeMeterManagement: React.FC<StripeMeterManagementProps> = ({
     if (!selectedMeter) return;
 
     try {
-      const updateData = {
+      const updateData: {
+        display_name: string;
+        description?: string;
+        [key: string]: any;
+      } = {
         display_name: values.display_name,
         description: values.description,
       };

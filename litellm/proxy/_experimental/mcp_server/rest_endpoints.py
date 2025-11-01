@@ -295,13 +295,22 @@ if MCP_AVAILABLE:
         """
         Preview tools available from MCP server before adding it
         """
+        verbose_logger.info(f"MCP REST: Received request to test tools list for server: {request.url}")
+        verbose_logger.info(f"MCP REST: Server config - transport: {request.transport_type}, auth: {request.auth_type}")
+
         async def _list_tools_operation(client):
+            verbose_logger.info("MCP REST: Starting tools discovery operation")
             list_tools_result: List[MCPTool] = await client.list_tools()
             model_dumped_tools: List[dict] = [tool.model_dump() for tool in list_tools_result]
-            return {
+            verbose_logger.info(f"MCP REST: Tools discovery completed, found {len(model_dumped_tools)} tools")
+
+            # Log the final response being returned to client
+            response = {
                 "tools": model_dumped_tools,
                 "error": None,
                 "message": "Successfully retrieved tools"
             }
-        
+            verbose_logger.info(f"MCP REST: Final response to client: {response}")
+            return response
+
         return await _execute_with_mcp_client(request, _list_tools_operation)

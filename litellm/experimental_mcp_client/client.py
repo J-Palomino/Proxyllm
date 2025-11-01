@@ -210,19 +210,31 @@ class MCPClient:
 
     async def list_tools(self) -> List[MCPTool]:
         """List available tools from the server."""
+        verbose_logger.info(f"MCP: Calling tools/list endpoint on server: {self.server_url}")
+        verbose_logger.info(f"MCP: Transport type: {self.transport_type}, Auth type: {self.auth_type}")
+
         if not self._session:
             try:
                 await self.connect()
             except Exception as e:
                 verbose_logger.warning(f"MCP client connection failed: {str(e)}")
                 return []
-        
+
         if self._session is None:
             verbose_logger.warning("MCP client session is not initialized")
             return []
 
         try:
+            verbose_logger.info("MCP: Sending list_tools request via MCP session")
             result = await self._session.list_tools()
+            verbose_logger.info(f"MCP: Received {len(result.tools) if result.tools else 0} tools from server")
+
+            # Log the raw response for debugging
+            verbose_logger.info(f"MCP: Raw list_tools response: {result}")
+            if result.tools:
+                for i, tool in enumerate(result.tools):
+                    verbose_logger.info(f"MCP: Tool {i+1}: {tool}")
+
             return result.tools
         except asyncio.CancelledError:
             await self.disconnect()

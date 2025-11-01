@@ -38,6 +38,7 @@ import TagManagement from "@/components/tag_management"
 import VectorStoreManagement from "@/components/vector_store_management"
 import UIThemeSettings from "@/components/ui_theme_settings"
 import StripeMeterManagement from "@/components/stripe_meter_management"
+import StripeBalanceManagement from "@/components/stripe_balance_management"
 import { UiLoadingSpinner } from "@/components/ui/ui-loading-spinner"
 import { cx } from "@/lib/cva.config"
 
@@ -404,6 +405,8 @@ export default function CreateKeyPage() {
                   <VectorStoreManagement accessToken={accessToken} userRole={userRole} userID={userID} />
                 ) : page == "stripe-meters" ? (
                   <StripeMeterManagement accessToken={accessToken} userRole={userRole} userID={userID} premiumUser={premiumUser} />
+                ) : page == "stripe-balances" ? (
+                  <StripeBalanceManagement accessToken={accessToken} userRole={userRole} userID={userID} premiumUser={premiumUser} />
                 ) : page == "new_usage" ? (
                   <NewUsagePage
                     userID={userID}

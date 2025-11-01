@@ -3,7 +3,7 @@ import Link from "next/link";
 import { List } from "postcss/lib/list";
 import { Text, Button } from "@tremor/react";
 import { useState } from "react";
-import { 
+import {
   KeyOutlined,
   PlayCircleOutlined,
   BlockOutlined,
@@ -27,6 +27,7 @@ import {
   BgColorsOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  DollarOutlined,
 } from '@ant-design/icons';
 import { old_admin_roles, v2_admin_role_names, all_admin_roles, rolesAllowedToSeeUsage, rolesWithWriteAccess, internalUserRoles, isAdminRole } from '../utils/roles';
 import UsageIndicator from './usage_indicator';
@@ -100,6 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         { key: "18", page: "mcp-servers", label: "MCP Servers", icon: <ToolOutlined style={{ fontSize: '18px' }} /> },
         { key: "21", page: "vector-stores", label: "Vector Stores", icon: <DatabaseOutlined style={{ fontSize: '18px' }} />, roles: all_admin_roles },
         { key: "27", page: "stripe-meters", label: "Stripe Meters", icon: <ThunderboltOutlined style={{ fontSize: '18px' }} />, roles: all_admin_roles },
+        { key: "28", page: "stripe-balances", label: "Stripe Balances", icon: <DollarOutlined style={{ fontSize: '18px' }} />, roles: all_admin_roles },
       ]
     },
     { 
