@@ -51,10 +51,14 @@ FROM $LITELLM_RUNTIME_IMAGE AS runtime
 USER root
 
 # Install runtime dependencies including Tailscale
-RUN apk add --no-cache openssl tzdata curl iptables iproute2 ca-certificates
+RUN apk add --no-cache openssl tzdata curl iptables iproute2 ca-certificates wget
 
-# Install Tailscale
-RUN curl -fsSL https://tailscale.com/install.sh | sh
+# Install Tailscale static binary (compatible with Wolfi Linux)
+RUN wget https://pkgs.tailscale.com/stable/tailscale_1.56.1_amd64.tgz && \
+    tar xzf tailscale_1.56.1_amd64.tgz && \
+    mv tailscale_1.56.1_amd64/tailscale /usr/bin/ && \
+    mv tailscale_1.56.1_amd64/tailscaled /usr/sbin/ && \
+    rm -rf tailscale_1.56.1_amd64 tailscale_1.56.1_amd64.tgz
 
 WORKDIR /app
 # Copy the current directory contents into the container at /app
