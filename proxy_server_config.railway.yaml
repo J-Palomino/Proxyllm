@@ -36,12 +36,12 @@ litellm_settings:
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
   store_model_in_db: False
+  database_url: os.environ/DATABASE_URL
+  database_connection_pool_limit: 20
+  database_connection_timeout: 60
 
   # IP Whitelist - Add your approved client IPs here
   # allowed_ips:
   #   - "1.2.3.4"      # Example client IP 1
   #   - "5.6.7.8"      # Example client IP 2
   #   - "10.0.0.0/24"  # Example IP range
-
-  # Database for API key management (optional)
-  # database_url: os.environ/DATABASE_URL
