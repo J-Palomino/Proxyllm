@@ -1,9 +1,9 @@
 [build]
 builder = "dockerfile"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "Dockerfile.railway"
 
 [deploy]
-startCommand = "--port 4000"
+startCommand = "--config proxy_server_config.railway.yaml --port 4000"
 healthcheckPath = "/health"
 healthcheckTimeout = 300
 
