@@ -275,6 +275,12 @@ from litellm.proxy.management_endpoints.scim.scim_v2 import scim_router
 from litellm.proxy.management_endpoints.stripe_meter_endpoints import (
     router as stripe_meter_router,
 )
+from litellm.proxy.management_endpoints.stripe_balance_endpoints import (
+    router as stripe_balance_router,
+)
+from litellm.proxy.management_endpoints.run_stripe_migration import (
+    router as stripe_migration_router,
+)
 from litellm.proxy.management_endpoints.tag_management_endpoints import (
     router as tag_management_router,
 )
@@ -9461,6 +9467,8 @@ app.include_router(team_callback_router)
 app.include_router(budget_management_router)
 app.include_router(model_management_router)
 app.include_router(stripe_meter_router)
+app.include_router(stripe_balance_router)
+app.include_router(stripe_migration_router)
 app.include_router(tag_management_router)
 app.include_router(user_agent_analytics_router)
 app.include_router(enterprise_router)
