@@ -85,15 +85,24 @@ EXPOSE 4000/tcp
 RUN apk add --no-cache supervisor
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Create Tailscale startup script
+# Create Tailscale startup script with subnet routing support
 RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo 'set -e' >> /app/start_with_tailscale.sh && \
-    echo 'echo "Starting Tailscale..."' >> /app/start_with_tailscale.sh && \
+    echo 'echo "Starting Tailscale daemon..."' >> /app/start_with_tailscale.sh && \
     echo 'tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &' >> /app/start_with_tailscale.sh && \
-    echo 'sleep 2' >> /app/start_with_tailscale.sh && \
+    echo 'sleep 3' >> /app/start_with_tailscale.sh && \
     echo 'if [ -n "$TAILSCALE_AUTH_KEY" ]; then' >> /app/start_with_tailscale.sh && \
-    echo '  tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm' >> /app/start_with_tailscale.sh && \
-    echo '  echo "Tailscale connected!"' >> /app/start_with_tailscale.sh && \
+    echo '  TAILSCALE_ROUTES="${TAILSCALE_ADVERTISE_ROUTES:-}"' >> /app/start_with_tailscale.sh && \
+    echo '  TAILSCALE_ACCEPT_ROUTES="${TAILSCALE_ACCEPT_ROUTES:-true}"' >> /app/start_with_tailscale.sh && \
+    echo '  if [ -n "$TAILSCALE_ROUTES" ]; then' >> /app/start_with_tailscale.sh && \
+    echo '    echo "Connecting to Tailscale with subnet routes: $TAILSCALE_ROUTES"' >> /app/start_with_tailscale.sh && \
+    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --advertise-routes=$TAILSCALE_ROUTES --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false' >> /app/start_with_tailscale.sh && \
+    echo '  else' >> /app/start_with_tailscale.sh && \
+    echo '    echo "Connecting to Tailscale (no subnet routing)"' >> /app/start_with_tailscale.sh && \
+    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false' >> /app/start_with_tailscale.sh && \
+    echo '  fi' >> /app/start_with_tailscale.sh && \
+    echo '  echo "Tailscale connected successfully!"' >> /app/start_with_tailscale.sh && \
+    echo '  tailscale status' >> /app/start_with_tailscale.sh && \
     echo 'else' >> /app/start_with_tailscale.sh && \
     echo '  echo "WARNING: TAILSCALE_AUTH_KEY not set, skipping Tailscale connection"' >> /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \

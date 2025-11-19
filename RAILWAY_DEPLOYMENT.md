@@ -76,6 +76,8 @@ git push
    - `TAILSCALE_AUTH_KEY` = Your auth key from Step 2
    - `LITELLM_MASTER_KEY` = `sk-1234567890abcdef1234567890abcdef` (or generate new)
    - `PORT` = `4000`
+   - `TAILSCALE_ADVERTISE_ROUTES` = (Optional) Subnet routes to advertise, e.g., `10.0.0.0/24,192.168.1.0/24`
+   - `TAILSCALE_ACCEPT_ROUTES` = (Optional) `true` or `false` (default: `true`)
 
 ## Step 4: Configure IP Whitelist (Optional)
 
@@ -97,6 +99,37 @@ git push
 ```
 
 Railway will auto-redeploy.
+
+## Step 4b: Enable Subnet Routing (Optional)
+
+To make your Railway container act as a Tailscale subnet router:
+
+1. Add the `TAILSCALE_ADVERTISE_ROUTES` environment variable:
+```bash
+# Example: Advertise access to a local network
+TAILSCALE_ADVERTISE_ROUTES=10.0.0.0/24
+```
+
+2. In your Tailscale admin console, approve the subnet routes:
+   - Go to https://login.tailscale.com/admin/machines
+   - Find the `railway-litellm` machine
+   - Click "Edit route settings"
+   - Approve the advertised routes
+
+3. Update your ACL to allow access through the subnet router:
+```json
+{
+  "acls": [
+    {
+      "action": "accept",
+      "src": ["autogroup:members"],
+      "dst": ["tag:railway-proxy:*"]
+    }
+  ]
+}
+```
+
+Now other devices on your Tailscale network can access the advertised subnets through the Railway container.
 
 ## Step 5: Test the Deployment
 

@@ -37,6 +37,8 @@
 | **STRIPE_CHARGE_BY** | `end_user_id` | ⚠️ NOT SET | Who to charge (defaults to end_user_id) |
 | **STRIPE_BILLING_METHOD** | `auto` | ⚠️ NOT SET | Billing method (auto-detected) |
 | **ALLOWED_IPS** | None | ⚠️ NOT SET | IP whitelist (open to all) |
+| **TAILSCALE_ADVERTISE_ROUTES** | None | ⚠️ NOT SET | Subnet routes to advertise (e.g., `10.0.0.0/24,192.168.1.0/24`) |
+| **TAILSCALE_ACCEPT_ROUTES** | `true` | ⚠️ NOT SET | Accept routes from other subnet routers |
 
 ---
 
