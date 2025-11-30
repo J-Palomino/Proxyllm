@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+Proxyllm is a customized fork of LiteLLM with enterprise features for:
+- **Stripe billing integration** - Prepaid credits, metered billing, and subscriptions
+- **Railway deployment** - Production infrastructure with health checks
+- **Tailscale VPN** - Secure access to on-premises Ollama instances (hugo:11434)
+
 ## Development Commands
 
 ### Installation
@@ -13,7 +20,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make test` - Run all tests
 - `make test-unit` - Run unit tests (tests/test_litellm) with 4 parallel workers
 - `make test-integration` - Run integration tests (excludes unit tests)
-- `pytest tests/` - Direct pytest execution
+- `poetry run pytest tests/path/to/test_file.py -v` - Run specific test file
+- `poetry run pytest tests/path/to/test_file.py::test_function -v` - Run specific test
 
 ### Code Quality
 - `make lint` - Run all linting (Ruff, MyPy, Black, circular imports, import safety)
@@ -21,35 +29,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `make lint-ruff` - Run Ruff linting only
 - `make lint-mypy` - Run MyPy type checking only
 
-### Single Test Files
-- `poetry run pytest tests/path/to/test_file.py -v` - Run specific test file
-- `poetry run pytest tests/path/to/test_file.py::test_function -v` - Run specific test
-
-### Running Scripts
-- `poetry run python script.py` - Run Python scripts (use for non-test files)
-
-### GitHub Issue & PR Templates
-When contributing to the project, use the appropriate templates:
-
-**Bug Reports** (`.github/ISSUE_TEMPLATE/bug_report.yml`):
-- Describe what happened vs. what you expected
-- Include relevant log output
-- Specify your LiteLLM version
-
-**Feature Requests** (`.github/ISSUE_TEMPLATE/feature_request.yml`):
-- Describe the feature clearly
-- Explain the motivation and use case
-
-**Pull Requests** (`.github/pull_request_template.md`):
-- Add at least 1 test in `tests/litellm/`
-- Ensure `make test-unit` passes
-
 ## Architecture Overview
 
 LiteLLM is a unified interface for 100+ LLM providers with two main components:
 
 ### Core Library (`litellm/`)
-- **Main entry point**: `litellm/main.py` - Contains core completion() function
+- **Main entry point**: `litellm/main.py` - Core completion() function
 - **Provider implementations**: `litellm/llms/` - Each provider has its own subdirectory
 - **Router system**: `litellm/router.py` + `litellm/router_utils/` - Load balancing and fallback logic
 - **Type definitions**: `litellm/types/` - Pydantic models and type hints
@@ -64,6 +49,11 @@ LiteLLM is a unified interface for 100+ LLM providers with two main components:
 - **Pass-through endpoints**: `pass_through_endpoints/` - Provider-specific API forwarding
 - **Guardrails**: `guardrails/` - Safety and content filtering hooks
 - **UI Dashboard**: Served from `_experimental/out/` (Next.js build)
+
+### Custom Additions (Proxyllm-specific)
+- **Stripe endpoints**: `litellm/proxy/management_endpoints/stripe_balance_endpoints.py`, `stripe_meter_endpoints.py`
+- **Railway config**: `Dockerfile.railway`, `railway.toml`, `proxy_server_config.railway.yaml`
+- **Database tables**: `LiteLLM_StripeBalanceTable`, `LiteLLM_StripeTransactionTable`
 
 ## Key Patterns
 
@@ -81,7 +71,37 @@ LiteLLM is a unified interface for 100+ LLM providers with two main components:
 ### Configuration
 - YAML config files for proxy server (see `proxy/example_config_yaml/`)
 - Environment variables for API keys and settings
-- Database schema managed via Prisma (`proxy/schema.prisma`)
+- Database schema managed via Prisma (`schema.prisma` in root)
+
+## Stripe Billing Integration
+
+Three billing methods supported:
+1. **Billing Meters** - Real-time usage via Stripe Billing Meters API
+2. **Subscriptions** - Recurring billing
+3. **Prepaid Credits** - Users pre-pay, usage deducts from balance
+
+Key endpoints:
+- `GET /stripe/balance` - Check prepaid balance
+- `POST /stripe/topup` - Create Stripe Checkout Session
+- `GET /stripe/transactions` - View transaction history
+- `POST /stripe/webhook` - Stripe webhook handler
+
+Environment variables: `STRIPE_API_KEY`, `STRIPE_METER_EVENT_NAME`, `STRIPE_USE_PREPAID_BALANCE`
+
+## Railway Deployment
+
+Architecture: Client APIs -> Railway (LiteLLM Proxy) -> Tailscale VPN -> hugo:11434 (Ollama)
+
+Key files:
+- `Dockerfile.railway` - Multi-stage build with Tailscale
+- `railway.toml` - Railway platform configuration
+- `proxy_server_config.railway.yaml` - Production proxy config
+
+Environment variables for Railway:
+- `TAILSCALE_AUTH_KEY` - Auth key tagged with `railway-proxy`
+- `LITELLM_MASTER_KEY` - Master API key
+- `TAILSCALE_ADVERTISE_ROUTES` - Optional subnet routing
+- `TAILSCALE_ACCEPT_ROUTES` - Accept routes from other nodes
 
 ## Development Notes
 
@@ -100,9 +120,15 @@ LiteLLM is a unified interface for 100+ LLM providers with two main components:
 ### Database Migrations
 - Prisma handles schema migrations
 - Migration files auto-generated with `prisma migrate dev`
-- Always test migrations against both PostgreSQL and SQLite
+- Stripe tables added: `LiteLLM_StripeBalanceTable`, `LiteLLM_StripeTransactionTable`
 
 ### Enterprise Features
 - Enterprise-specific code in `enterprise/` directory
 - Optional features enabled via environment variables
-- Separate licensing and authentication for enterprise features
+
+## Related Documentation
+
+- `RAILWAY_DEPLOYMENT.md` - Railway deployment guide
+- `STRIPE_PREPAID_SETUP.md` - Stripe billing setup
+- `TAILSCALE_SUBNET_ROUTING.md` - VPN configuration
+- `AGENTS.md` - Agent development instructions

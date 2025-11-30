@@ -283,6 +283,15 @@ from litellm.proxy.management_endpoints.cost_tracking_settings import (
 from litellm.proxy.management_endpoints.customer_endpoints import (
     router as customer_router,
 )
+from litellm.proxy.management_endpoints.stripe_meter_endpoints import (
+    router as stripe_meter_router,
+)
+from litellm.proxy.management_endpoints.stripe_balance_endpoints import (
+    router as stripe_balance_router,
+)
+from litellm.proxy.management_endpoints.run_stripe_migration import (
+    router as stripe_migration_router,
+)
 from litellm.proxy.management_endpoints.internal_user_endpoints import (
     router as internal_user_router,
 )
@@ -10190,6 +10199,9 @@ app.include_router(ui_sso_router)
 app.include_router(scim_router)
 app.include_router(organization_router)
 app.include_router(customer_router)
+app.include_router(stripe_meter_router)
+app.include_router(stripe_balance_router)
+app.include_router(stripe_migration_router)
 app.include_router(spend_management_router)
 app.include_router(cloudzero_router)
 app.include_router(caching_router)
