@@ -9,11 +9,9 @@ FROM $LITELLM_BUILD_IMAGE AS builder
 # Set the working directory to /app
 WORKDIR /app
 
-# Clear Railway proxy vars that break apt-get (injected at build time)
-ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
-
-# Install build dependencies (Debian-based)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install build dependencies (Debian-based) - unset Railway proxy vars inline
+RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+    apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     libssl-dev \
@@ -60,17 +58,15 @@ RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
 # Runtime stage
 FROM $LITELLM_RUNTIME_IMAGE AS runtime
 
-# Clear Railway proxy vars that break apt-get (injected at build time)
-ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
-
 # Create wrapper script to clear proxy vars
 RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
     echo 'unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy' >> /usr/local/bin/noproxy && \
     echo 'exec "$@"' >> /usr/local/bin/noproxy && \
     chmod +x /usr/local/bin/noproxy
 
-# Install runtime dependencies including Tailscale (Debian-based)
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# Install runtime dependencies including Tailscale (Debian-based) - unset Railway proxy vars inline
+RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+    apt-get update && apt-get install -y --no-install-recommends \
     openssl \
     tzdata \
     curl \
@@ -109,7 +105,8 @@ RUN chmod +x docker/prod_entrypoint.sh
 
 EXPOSE 4000/tcp
 
-RUN apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
+RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+    apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
 COPY docker/supervisord.conf /etc/supervisord.conf
 
 # Create Tailscale startup script with subnet routing support
