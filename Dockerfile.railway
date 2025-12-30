@@ -64,7 +64,7 @@ RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
     echo 'exec "$@"' >> /usr/local/bin/noproxy && \
     chmod +x /usr/local/bin/noproxy
 
-# Install runtime dependencies including Tailscale and Node.js (for prisma) - unset Railway proxy vars inline
+# Install runtime dependencies including Tailscale, Node.js (for prisma), and PostgreSQL
 RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
     apt-get update && apt-get install -y --no-install-recommends \
     openssl \
@@ -75,12 +75,20 @@ RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
     ca-certificates \
     wget \
     gnupg \
+    postgresql \
+    postgresql-contrib \
     && mkdir -p /etc/apt/keyrings \
     && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
     && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
+
+# Setup PostgreSQL data directory and permissions
+RUN mkdir -p /var/run/postgresql && \
+    chown -R postgres:postgres /var/run/postgresql && \
+    mkdir -p /var/lib/postgresql/data && \
+    chown -R postgres:postgres /var/lib/postgresql
 
 # Install Tailscale static binary
 RUN /usr/local/bin/noproxy wget https://pkgs.tailscale.com/stable/tailscale_1.56.1_amd64.tgz && \
@@ -115,12 +123,37 @@ RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
     apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Create Tailscale startup script with subnet routing support
-# Note: No set -e so Tailscale failures don't prevent LiteLLM from starting
+# Create startup script with PostgreSQL, Tailscale, and LiteLLM
+# Note: No set -e so failures don't prevent LiteLLM from starting
 # CRITICAL: Unset proxy vars at very start - Railway injects these at runtime
 RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo '# Clear Railway proxy vars immediately - they break Python HTTP clients' >> /app/start_with_tailscale.sh && \
     echo 'export HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy="" NO_PROXY="*"' >> /app/start_with_tailscale.sh && \
+    echo '' >> /app/start_with_tailscale.sh && \
+    echo '# Start PostgreSQL' >> /app/start_with_tailscale.sh && \
+    echo 'echo "Starting PostgreSQL..."' >> /app/start_with_tailscale.sh && \
+    echo 'PGDATA=/var/lib/postgresql/data' >> /app/start_with_tailscale.sh && \
+    echo 'if [ ! -f "$PGDATA/PG_VERSION" ]; then' >> /app/start_with_tailscale.sh && \
+    echo '  echo "Initializing PostgreSQL database..."' >> /app/start_with_tailscale.sh && \
+    echo '  su postgres -c "/usr/lib/postgresql/15/bin/initdb -D $PGDATA"' >> /app/start_with_tailscale.sh && \
+    echo '  echo "host all all 0.0.0.0/0 md5" >> $PGDATA/pg_hba.conf' >> /app/start_with_tailscale.sh && \
+    echo '  echo "listen_addresses = '"'"'*'"'"'" >> $PGDATA/postgresql.conf' >> /app/start_with_tailscale.sh && \
+    echo 'fi' >> /app/start_with_tailscale.sh && \
+    echo 'su postgres -c "/usr/lib/postgresql/15/bin/pg_ctl -D $PGDATA -l /var/lib/postgresql/logfile start"' >> /app/start_with_tailscale.sh && \
+    echo 'sleep 3' >> /app/start_with_tailscale.sh && \
+    echo '# Create litellm database and user if not exists' >> /app/start_with_tailscale.sh && \
+    echo 'su postgres -c "psql -tc \"SELECT 1 FROM pg_database WHERE datname = '"'"'litellm'"'"'\" | grep -q 1 || psql -c \"CREATE DATABASE litellm;\""' >> /app/start_with_tailscale.sh && \
+    echo 'su postgres -c "psql -tc \"SELECT 1 FROM pg_roles WHERE rolname = '"'"'litellm'"'"'\" | grep -q 1 || psql -c \"CREATE USER litellm WITH PASSWORD '"'"'litellm'"'"';\""' >> /app/start_with_tailscale.sh && \
+    echo 'su postgres -c "psql -c \"GRANT ALL PRIVILEGES ON DATABASE litellm TO litellm;\""' >> /app/start_with_tailscale.sh && \
+    echo 'su postgres -c "psql -d litellm -c \"GRANT ALL ON SCHEMA public TO litellm;\""' >> /app/start_with_tailscale.sh && \
+    echo 'echo "PostgreSQL started and configured."' >> /app/start_with_tailscale.sh && \
+    echo '' >> /app/start_with_tailscale.sh && \
+    echo '# Set DATABASE_URL for local PostgreSQL if not already set to external' >> /app/start_with_tailscale.sh && \
+    echo 'if [ -z "$DATABASE_URL" ] || echo "$DATABASE_URL" | grep -q "railway.internal"; then' >> /app/start_with_tailscale.sh && \
+    echo '  export DATABASE_URL="postgresql://litellm:litellm@localhost:5432/litellm"' >> /app/start_with_tailscale.sh && \
+    echo '  echo "Using local PostgreSQL: $DATABASE_URL"' >> /app/start_with_tailscale.sh && \
+    echo 'fi' >> /app/start_with_tailscale.sh && \
+    echo '' >> /app/start_with_tailscale.sh && \
     echo 'echo "Starting Tailscale daemon..."' >> /app/start_with_tailscale.sh && \
     echo 'tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &' >> /app/start_with_tailscale.sh && \
     echo 'sleep 3' >> /app/start_with_tailscale.sh && \
