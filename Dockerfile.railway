@@ -104,8 +104,8 @@ RUN /usr/local/bin/noproxy pip install *.whl /wheels/* --no-index --find-links=/
 # Install semantic_router and aurelio-sdk using script
 RUN chmod +x docker/install_auto_router.sh && /usr/local/bin/noproxy ./docker/install_auto_router.sh
 
-# Generate prisma client
-RUN prisma generate
+# Generate prisma client (use noproxy to allow npm registry access)
+RUN /usr/local/bin/noproxy prisma generate
 RUN chmod +x docker/entrypoint.sh
 RUN chmod +x docker/prod_entrypoint.sh
 
