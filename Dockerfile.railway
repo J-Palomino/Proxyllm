@@ -15,6 +15,8 @@ USER root
 # Note: python:latest-dev already includes Python dev headers, so we only need gcc and openssl
 RUN apk add --no-cache gcc openssl openssl-dev
 
+# Unset proxy vars during build (Tailscale not running yet)
+ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
 
 RUN pip install --upgrade pip && \
     pip install build
@@ -50,6 +52,9 @@ FROM $LITELLM_RUNTIME_IMAGE AS runtime
 
 # Ensure runtime stage runs as root
 USER root
+
+# Unset proxy vars during build (Tailscale not running yet)
+ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
 
 # Install runtime dependencies including Tailscale
 RUN apk add --no-cache openssl tzdata curl iptables iproute2 ca-certificates wget
