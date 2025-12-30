@@ -137,6 +137,8 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo '  echo "WARNING: TAILSCALE_AUTH_KEY not set, skipping Tailscale connection"' >> /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \
     echo 'echo "Starting LiteLLM proxy..."' >> /app/start_with_tailscale.sh && \
+    echo '# Unset Railway proxy vars that break Python HTTP clients' >> /app/start_with_tailscale.sh && \
+    echo 'unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy' >> /app/start_with_tailscale.sh && \
     echo 'exec docker/prod_entrypoint.sh "$@"' >> /app/start_with_tailscale.sh && \
     chmod +x /app/start_with_tailscale.sh
 
