@@ -9,6 +9,9 @@ FROM $LITELLM_BUILD_IMAGE AS builder
 # Set the working directory to /app
 WORKDIR /app
 
+# Clear Railway proxy vars that break apt-get (injected at build time)
+ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
+
 # Install build dependencies (Debian-based)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
@@ -56,6 +59,9 @@ RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
 
 # Runtime stage
 FROM $LITELLM_RUNTIME_IMAGE AS runtime
+
+# Clear Railway proxy vars that break apt-get (injected at build time)
+ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
 
 # Create wrapper script to clear proxy vars
 RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
