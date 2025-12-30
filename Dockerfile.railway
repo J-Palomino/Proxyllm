@@ -119,8 +119,8 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 # Note: No set -e so Tailscale failures don't prevent LiteLLM from starting
 # CRITICAL: Unset proxy vars at very start - Railway injects these at runtime
 RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
-    echo '# Unset Railway proxy vars immediately - they break Python HTTP clients' >> /app/start_with_tailscale.sh && \
-    echo 'unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy' >> /app/start_with_tailscale.sh && \
+    echo '# Clear Railway proxy vars immediately - they break Python HTTP clients' >> /app/start_with_tailscale.sh && \
+    echo 'export HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy="" NO_PROXY="*"' >> /app/start_with_tailscale.sh && \
     echo 'echo "Starting Tailscale daemon..."' >> /app/start_with_tailscale.sh && \
     echo 'tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &' >> /app/start_with_tailscale.sh && \
     echo 'sleep 3' >> /app/start_with_tailscale.sh && \
