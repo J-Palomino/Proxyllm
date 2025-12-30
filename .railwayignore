@@ -1,0 +1,62 @@
+# Git
+.git/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.mypy_cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Tests (not needed for production)
+tests/
+test/
+
+# Documentation
+docs/
+
+# Node modules
+**/node_modules/
+
+# IDE/Editor
+.idea/
+.vscode/
+.cursor/
+**/.vim/
+
+# Local configs and secrets
+.env
+.env.*
+*.log
+secrets.toml
+*_secret*.yaml
+credentials.json
+
+# Development files
+.aider*
+.codegpt
+*.md
+!README.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large unnecessary directories
+deploy/charts/
+litellm/proxy/google-cloud-sdk/
+litellm/proxy/myenv/
+myenv/
+newenv/
+
+# UI build artifacts (already built)
+ui/litellm-dashboard/.next/
+ui/litellm-dashboard/node_modules/
+
+# Load test files
+litellm/proxy/to_delete_loadtest_work/
