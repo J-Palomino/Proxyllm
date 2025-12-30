@@ -4,7 +4,7 @@ dockerfilePath = "Dockerfile.railway"
 
 [deploy]
 startCommand = "/app/start_with_tailscale.sh --config proxy_server_config.railway.yaml --port 4000"
-healthcheckPath = "/health"
+healthcheckPath = "/health/liveliness"
 healthcheckTimeout = 300
 
 [[services]]
