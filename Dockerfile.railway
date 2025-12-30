@@ -29,11 +29,14 @@ RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
 RUN /usr/local/bin/noproxy pip install --upgrade pip && \
     /usr/local/bin/noproxy pip install build
 
-# Copy the current directory contents into the container at /app
-COPY . .
+# Copy requirements first for better layer caching
+COPY requirements.txt pyproject.toml ./
 
-# Build Admin UI
-RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
+# Install dependencies as wheels BEFORE copying source (better caching)
+RUN /usr/local/bin/noproxy pip wheel --wheel-dir=/wheels/ -r requirements.txt
+
+# Now copy the rest of the source code
+COPY . .
 
 # Build the package (use noproxy to avoid Railway's proxy vars breaking pip in build isolation)
 RUN rm -rf dist/* && /usr/local/bin/noproxy python -m build
@@ -43,9 +46,6 @@ RUN ls -1 dist/*.whl | head -1
 
 # Install the package
 RUN /usr/local/bin/noproxy pip install dist/*.whl
-
-# install dependencies as wheels
-RUN /usr/local/bin/noproxy pip wheel --no-cache-dir --wheel-dir=/wheels/ -r requirements.txt
 
 # ensure pyjwt is used, not jwt
 RUN /usr/local/bin/noproxy pip uninstall jwt -y || true
