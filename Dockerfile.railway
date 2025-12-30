@@ -1,19 +1,22 @@
-# Base image for building - pinned to Python 3.12 for package compatibility
-ARG LITELLM_BUILD_IMAGE=cgr.dev/chainguard/python:3.12-dev
+# Base image for building - using official Python 3.12 slim for package compatibility
+ARG LITELLM_BUILD_IMAGE=python:3.12-slim-bookworm
 
-# Runtime image - pinned to Python 3.12 for package compatibility
-ARG LITELLM_RUNTIME_IMAGE=cgr.dev/chainguard/python:3.12-dev
+# Runtime image
+ARG LITELLM_RUNTIME_IMAGE=python:3.12-slim-bookworm
 # Builder stage
 FROM $LITELLM_BUILD_IMAGE AS builder
 
 # Set the working directory to /app
 WORKDIR /app
 
-USER root
-
-# Install build dependencies
-# Note: python:latest-dev already includes Python dev headers, so we only need gcc and openssl
-RUN apk add --no-cache gcc openssl openssl-dev
+# Install build dependencies (Debian-based)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create a wrapper script to clear proxy vars (Railway injects them at build time)
 RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
@@ -54,19 +57,24 @@ RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
 # Runtime stage
 FROM $LITELLM_RUNTIME_IMAGE AS runtime
 
-# Ensure runtime stage runs as root
-USER root
-
 # Create wrapper script to clear proxy vars
 RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
     echo 'unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy' >> /usr/local/bin/noproxy && \
     echo 'exec "$@"' >> /usr/local/bin/noproxy && \
     chmod +x /usr/local/bin/noproxy
 
-# Install runtime dependencies including Tailscale
-RUN apk add --no-cache openssl tzdata curl iptables iproute2 ca-certificates wget
+# Install runtime dependencies including Tailscale (Debian-based)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    tzdata \
+    curl \
+    iptables \
+    iproute2 \
+    ca-certificates \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install Tailscale static binary (compatible with Wolfi Linux)
+# Install Tailscale static binary
 RUN /usr/local/bin/noproxy wget https://pkgs.tailscale.com/stable/tailscale_1.56.1_amd64.tgz && \
     tar xzf tailscale_1.56.1_amd64.tgz && \
     mv tailscale_1.56.1_amd64/tailscale /usr/bin/ && \
@@ -95,7 +103,7 @@ RUN chmod +x docker/prod_entrypoint.sh
 
 EXPOSE 4000/tcp
 
-RUN apk add --no-cache supervisor
+RUN apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
 COPY docker/supervisord.conf /etc/supervisord.conf
 
 # Create Tailscale startup script with subnet routing support
