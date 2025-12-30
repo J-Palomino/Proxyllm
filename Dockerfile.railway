@@ -31,8 +31,8 @@ COPY . .
 # Build Admin UI
 RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
 
-# Build the package
-RUN rm -rf dist/* && python -m build
+# Build the package (use noproxy to avoid Railway's proxy vars breaking pip in build isolation)
+RUN rm -rf dist/* && /usr/local/bin/noproxy python -m build
 
 # There should be only one wheel file now, assume the build only creates one
 RUN ls -1 dist/*.whl | head -1
