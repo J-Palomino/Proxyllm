@@ -64,7 +64,7 @@ RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
     echo 'exec "$@"' >> /usr/local/bin/noproxy && \
     chmod +x /usr/local/bin/noproxy
 
-# Install runtime dependencies including Tailscale (Debian-based) - unset Railway proxy vars inline
+# Install runtime dependencies including Tailscale and Node.js (for prisma) - unset Railway proxy vars inline
 RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
     apt-get update && apt-get install -y --no-install-recommends \
     openssl \
@@ -74,6 +74,12 @@ RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
     iproute2 \
     ca-certificates \
     wget \
+    gnupg \
+    && mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Tailscale static binary
