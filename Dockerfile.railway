@@ -15,11 +15,15 @@ USER root
 # Note: python:latest-dev already includes Python dev headers, so we only need gcc and openssl
 RUN apk add --no-cache gcc openssl openssl-dev
 
-# Unset proxy vars during build (Tailscale not running yet)
-ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
+# Create a wrapper script to clear proxy vars (Railway injects them at build time)
+RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
+    echo 'unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy' >> /usr/local/bin/noproxy && \
+    echo 'exec "$@"' >> /usr/local/bin/noproxy && \
+    chmod +x /usr/local/bin/noproxy
 
-RUN pip install --upgrade pip && \
-    pip install build
+# Use wrapper for pip commands
+RUN /usr/local/bin/noproxy pip install --upgrade pip && \
+    /usr/local/bin/noproxy pip install build
 
 # Copy the current directory contents into the container at /app
 COPY . .
@@ -34,15 +38,15 @@ RUN rm -rf dist/* && python -m build
 RUN ls -1 dist/*.whl | head -1
 
 # Install the package
-RUN pip install dist/*.whl
+RUN /usr/local/bin/noproxy pip install dist/*.whl
 
 # install dependencies as wheels
-RUN pip wheel --no-cache-dir --wheel-dir=/wheels/ -r requirements.txt
+RUN /usr/local/bin/noproxy pip wheel --no-cache-dir --wheel-dir=/wheels/ -r requirements.txt
 
 # ensure pyjwt is used, not jwt
-RUN pip uninstall jwt -y
-RUN pip uninstall PyJWT -y
-RUN pip install PyJWT==2.9.0 --no-cache-dir
+RUN /usr/local/bin/noproxy pip uninstall jwt -y || true
+RUN /usr/local/bin/noproxy pip uninstall PyJWT -y || true
+RUN /usr/local/bin/noproxy pip install PyJWT==2.9.0 --no-cache-dir
 
 # Build Admin UI
 RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
@@ -53,14 +57,17 @@ FROM $LITELLM_RUNTIME_IMAGE AS runtime
 # Ensure runtime stage runs as root
 USER root
 
-# Unset proxy vars during build (Tailscale not running yet)
-ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
+# Create wrapper script to clear proxy vars
+RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
+    echo 'unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy' >> /usr/local/bin/noproxy && \
+    echo 'exec "$@"' >> /usr/local/bin/noproxy && \
+    chmod +x /usr/local/bin/noproxy
 
 # Install runtime dependencies including Tailscale
 RUN apk add --no-cache openssl tzdata curl iptables iproute2 ca-certificates wget
 
 # Install Tailscale static binary (compatible with Wolfi Linux)
-RUN wget https://pkgs.tailscale.com/stable/tailscale_1.56.1_amd64.tgz && \
+RUN /usr/local/bin/noproxy wget https://pkgs.tailscale.com/stable/tailscale_1.56.1_amd64.tgz && \
     tar xzf tailscale_1.56.1_amd64.tgz && \
     mv tailscale_1.56.1_amd64/tailscale /usr/bin/ && \
     mv tailscale_1.56.1_amd64/tailscaled /usr/sbin/ && \
@@ -76,10 +83,10 @@ COPY --from=builder /app/dist/*.whl .
 COPY --from=builder /wheels/ /wheels/
 
 # Install the built wheel using pip; again using a wildcard if it's the only file
-RUN pip install *.whl /wheels/* --no-index --find-links=/wheels/ && rm -f *.whl && rm -rf /wheels
+RUN /usr/local/bin/noproxy pip install *.whl /wheels/* --no-index --find-links=/wheels/ && rm -f *.whl && rm -rf /wheels
 
 # Install semantic_router and aurelio-sdk using script
-RUN chmod +x docker/install_auto_router.sh && ./docker/install_auto_router.sh
+RUN chmod +x docker/install_auto_router.sh && /usr/local/bin/noproxy ./docker/install_auto_router.sh
 
 # Generate prisma client
 RUN prisma generate
