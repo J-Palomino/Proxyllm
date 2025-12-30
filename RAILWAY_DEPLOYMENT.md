@@ -217,3 +217,156 @@ model_list:
 - Railway: ~$5/month for basic deployment
 - Tailscale: Free for up to 3 users
 - Ollama: Running on your existing infrastructure (free)
+
+---
+
+## Critical Build & Deploy Fixes (December 2024)
+
+This section documents critical fixes required for successful Railway deployment.
+
+### Railway SOCKS5 Proxy Injection
+
+Railway injects proxy environment variables at both build and runtime:
+```
+HTTP_PROXY=socks5://localhost:1055
+HTTPS_PROXY=socks5://localhost:1055
+ALL_PROXY=socks5://localhost:1055
+```
+
+These break pip, apt-get, and Python HTTP clients.
+
+**Build-time fix** - Use inline unset and noproxy wrapper:
+```dockerfile
+# For apt-get - inline unset
+RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+    apt-get update && apt-get install -y ...
+
+# Create noproxy wrapper for pip
+RUN echo '#!/bin/sh' > /usr/local/bin/noproxy && \
+    echo 'unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy' >> /usr/local/bin/noproxy && \
+    echo 'exec "$@"' >> /usr/local/bin/noproxy && \
+    chmod +x /usr/local/bin/noproxy
+
+# Use wrapper for pip commands
+RUN /usr/local/bin/noproxy pip install ...
+RUN /usr/local/bin/noproxy python -m build
+RUN /usr/local/bin/noproxy prisma generate
+```
+
+**Runtime fix** - Clear at the very start of entrypoint script:
+```sh
+#!/bin/sh
+export HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy="" NO_PROXY="*"
+# ... rest of startup
+```
+
+### Base Image Selection
+
+Use official Python slim, NOT Chainguard:
+```dockerfile
+ARG LITELLM_BUILD_IMAGE=python:3.12-slim-bookworm
+ARG LITELLM_RUNTIME_IMAGE=python:3.12-slim-bookworm
+```
+
+Chainguard's `latest-dev` can auto-upgrade to Python 3.14 which lacks pre-built wheels for grpcio, cryptography, and other C extensions.
+
+### Node.js for Prisma Client Generation
+
+Prisma requires Node.js. Install via nodesource apt repo:
+```dockerfile
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
+    apt-get update && apt-get install -y nodejs
+
+# Then generate with noproxy wrapper
+RUN /usr/local/bin/noproxy prisma generate
+```
+
+### Health Check Endpoint
+
+Use the unauthenticated endpoint in `railway.toml`:
+```toml
+[deploy]
+healthcheckPath = "/health/liveliness"  # NOT "/health" which requires auth
+healthcheckTimeout = 300
+```
+
+### startCommand Must Include Full Path
+
+Railway's startCommand overrides Docker ENTRYPOINT/CMD:
+```toml
+[deploy]
+startCommand = "/app/start_with_tailscale.sh --config proxy_server_config.railway.yaml --port 4000"
+```
+
+### PostgreSQL in Container
+
+PostgreSQL runs inside the container. Install and setup:
+```dockerfile
+RUN apt-get install -y postgresql postgresql-contrib
+
+RUN mkdir -p /var/run/postgresql && chown -R postgres:postgres /var/run/postgresql && \
+    mkdir -p /var/lib/postgresql/data && chown -R postgres:postgres /var/lib/postgresql
+```
+
+Startup script auto-initializes:
+```sh
+PGDATA=/var/lib/postgresql/data
+if [ ! -f "$PGDATA/PG_VERSION" ]; then
+  su postgres -c "/usr/lib/postgresql/15/bin/initdb -D $PGDATA"
+fi
+su postgres -c "/usr/lib/postgresql/15/bin/pg_ctl -D $PGDATA -l /var/lib/postgresql/logfile start"
+```
+
+Override DATABASE_URL to use local PostgreSQL:
+```sh
+if [ -z "$DATABASE_URL" ] || echo "$DATABASE_URL" | grep -q "railway.internal"; then
+  export DATABASE_URL="postgresql://litellm:litellm@localhost:5432/litellm"
+fi
+```
+
+### Tailscale Non-Blocking Startup
+
+Don't use `set -e` - Tailscale failures should not prevent LiteLLM from starting:
+```sh
+#!/bin/sh
+# NO set -e here
+
+tailscale up --authkey=$TAILSCALE_AUTH_KEY --timeout=30s || echo "Tailscale failed, continuing anyway"
+```
+
+### Build Optimization for Layer Caching
+
+Copy requirements before source code:
+```dockerfile
+COPY requirements.txt pyproject.toml ./
+RUN pip wheel --wheel-dir=/wheels/ -r requirements.txt
+COPY . .
+```
+
+### Common Build Errors
+
+| Error | Solution |
+|-------|----------|
+| `Missing dependencies for SOCKS support` | Wrap with noproxy script |
+| `grpcio failed to build` | Use Python 3.12, not 3.14 |
+| `Unsupported proxy configured` | Inline unset before apt-get |
+| `nodeenv couldn't download` | Install Node.js via nodesource |
+| `npm can't reach registry` | Wrap prisma generate with noproxy |
+| `Container failed: executable --config not found` | Fix startCommand in railway.toml |
+| `Health check 401 Unauthorized` | Use /health/liveliness endpoint |
+| `Can't reach database server` | Add PostgreSQL to container |
+| `httpx.ConnectError: All connection attempts failed` | Clear proxy vars at script start |
+
+### Monitoring Deployment
+
+```bash
+# Check logs
+railway logs --lines 100
+
+# Look for success indicators
+railway logs | grep -E "200 OK|Started server|initialized"
+
+# Check status
+railway status
+```
