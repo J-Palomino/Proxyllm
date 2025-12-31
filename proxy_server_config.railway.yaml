@@ -4,6 +4,7 @@ model_list:
     litellm_params:
       model: ollama/llama3
       api_base: http://100.104.46.119:11434  # hugo via Tailscale
+      proxy: socks5://localhost:1055  # Tailscale SOCKS proxy
     model_info:
       id: "hugo-llama3"
 
@@ -11,6 +12,7 @@ model_list:
     litellm_params:
       model: ollama/llama2
       api_base: http://100.104.46.119:11434  # hugo via Tailscale
+      proxy: socks5://localhost:1055  # Tailscale SOCKS proxy
     model_info:
       id: "hugo-llama2"
 
@@ -18,6 +20,7 @@ model_list:
     litellm_params:
       model: ollama/mistral
       api_base: http://100.104.46.119:11434  # hugo via Tailscale
+      proxy: socks5://localhost:1055  # Tailscale SOCKS proxy
     model_info:
       id: "hugo-mistral"
 
@@ -26,6 +29,7 @@ model_list:
     litellm_params:
       model: "ollama/*"
       api_base: http://100.104.46.119:11434  # hugo via Tailscale
+      proxy: socks5://localhost:1055  # Tailscale SOCKS proxy
 
 litellm_settings:
   drop_params: True
