@@ -35,7 +35,7 @@ litellm_settings:
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
-  store_model_in_db: False
+  store_model_in_db: True  # Enable model management via UI
   database_url: os.environ/DATABASE_URL
   database_connection_pool_limit: 20
   database_connection_timeout: 60
