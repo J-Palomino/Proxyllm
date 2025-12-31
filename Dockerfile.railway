@@ -120,7 +120,12 @@ RUN chmod +x docker/prod_entrypoint.sh
 EXPOSE 4000/tcp
 
 RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
-    apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
+    apt-get update && apt-get install -y --no-install-recommends supervisor proxychains4 && rm -rf /var/lib/apt/lists/*
+
+# Configure proxychains4 to use Tailscale SOCKS5 proxy
+RUN sed -i 's/socks4[[:space:]]\+127\.0\.0\.1[[:space:]]\+9050/socks5h 127.0.0.1 1055/' /etc/proxychains4.conf && \
+    sed -i 's/^strict_chain/#strict_chain/' /etc/proxychains4.conf && \
+    sed -i 's/^#dynamic_chain/dynamic_chain/' /etc/proxychains4.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 
 # Create startup script with PostgreSQL, Tailscale, and LiteLLM
@@ -169,17 +174,18 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo '  fi' >> /app/start_with_tailscale.sh && \
     echo '  echo "Tailscale status:"' >> /app/start_with_tailscale.sh && \
     echo '  tailscale status || true' >> /app/start_with_tailscale.sh && \
-    echo '  # Set proxy to use Tailscale SOCKS5 for reaching Tailscale nodes' >> /app/start_with_tailscale.sh && \
-    echo '  export HTTP_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo '  export http_proxy=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo '  export ALL_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo '  export all_proxy=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo '  echo "Tailscale SOCKS5 proxy enabled at localhost:1055"' >> /app/start_with_tailscale.sh && \
+    echo '  echo "Tailscale connected - using proxychains4 for routing"' >> /app/start_with_tailscale.sh && \
+    echo '  export USE_PROXYCHAINS=1' >> /app/start_with_tailscale.sh && \
     echo 'else' >> /app/start_with_tailscale.sh && \
     echo '  echo "WARNING: TAILSCALE_AUTH_KEY not set, skipping Tailscale connection"' >> /app/start_with_tailscale.sh && \
+    echo '  export USE_PROXYCHAINS=0' >> /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \
     echo 'echo "Starting LiteLLM proxy..."' >> /app/start_with_tailscale.sh && \
-    echo 'exec docker/prod_entrypoint.sh "$@"' >> /app/start_with_tailscale.sh && \
+    echo 'if [ "$USE_PROXYCHAINS" = "1" ]; then' >> /app/start_with_tailscale.sh && \
+    echo '  exec proxychains4 -q docker/prod_entrypoint.sh "$@"' >> /app/start_with_tailscale.sh && \
+    echo 'else' >> /app/start_with_tailscale.sh && \
+    echo '  exec docker/prod_entrypoint.sh "$@"' >> /app/start_with_tailscale.sh && \
+    echo 'fi' >> /app/start_with_tailscale.sh && \
     chmod +x /app/start_with_tailscale.sh
 
 ENTRYPOINT ["/app/start_with_tailscale.sh"]
