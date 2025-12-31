@@ -155,7 +155,7 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \
     echo '' >> /app/start_with_tailscale.sh && \
     echo 'echo "Starting Tailscale daemon..."' >> /app/start_with_tailscale.sh && \
-    echo 'tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &' >> /app/start_with_tailscale.sh && \
+    echo 'tailscaled --tun=userspace-networking --outbound-http-proxy-listen=localhost:1055 &' >> /app/start_with_tailscale.sh && \
     echo 'sleep 3' >> /app/start_with_tailscale.sh && \
     echo 'if [ -n "$TAILSCALE_AUTH_KEY" ]; then' >> /app/start_with_tailscale.sh && \
     echo '  TAILSCALE_ROUTES="${TAILSCALE_ADVERTISE_ROUTES:-}"' >> /app/start_with_tailscale.sh && \
@@ -169,12 +169,12 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo '  fi' >> /app/start_with_tailscale.sh && \
     echo '  echo "Tailscale status:"' >> /app/start_with_tailscale.sh && \
     echo '  tailscale status || true' >> /app/start_with_tailscale.sh && \
-    echo '  # Set proxy to use Tailscale SOCKS5 for reaching Tailscale nodes' >> /app/start_with_tailscale.sh && \
-    echo '  export HTTP_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo '  export http_proxy=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo '  export ALL_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo '  export all_proxy=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo '  echo "Tailscale SOCKS proxy enabled at localhost:1055"' >> /app/start_with_tailscale.sh && \
+    echo '  # Set proxy to use Tailscale HTTP proxy for reaching Tailscale nodes' >> /app/start_with_tailscale.sh && \
+    echo '  export HTTP_PROXY=http://localhost:1055' >> /app/start_with_tailscale.sh && \
+    echo '  export http_proxy=http://localhost:1055' >> /app/start_with_tailscale.sh && \
+    echo '  export ALL_PROXY=http://localhost:1055' >> /app/start_with_tailscale.sh && \
+    echo '  export all_proxy=http://localhost:1055' >> /app/start_with_tailscale.sh && \
+    echo '  echo "Tailscale HTTP proxy enabled at localhost:1055"' >> /app/start_with_tailscale.sh && \
     echo 'else' >> /app/start_with_tailscale.sh && \
     echo '  echo "WARNING: TAILSCALE_AUTH_KEY not set, skipping Tailscale connection"' >> /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \
