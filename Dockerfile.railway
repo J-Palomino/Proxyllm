@@ -170,6 +170,8 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo '  echo "Tailscale status:"' >> /app/start_with_tailscale.sh && \
     echo '  tailscale status || true' >> /app/start_with_tailscale.sh && \
     echo '  # Set proxy to use Tailscale SOCKS5 for reaching Tailscale nodes' >> /app/start_with_tailscale.sh && \
+    echo '  export HTTP_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
+    echo '  export http_proxy=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
     echo '  export ALL_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
     echo '  export all_proxy=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
     echo '  echo "Tailscale SOCKS proxy enabled at localhost:1055"' >> /app/start_with_tailscale.sh && \
