@@ -1,6 +1,6 @@
 # Railway Deployment Guide - LiteLLM Proxy with Tailscale
 
-This guide explains how to deploy LiteLLM proxy on Railway with secure access to hab:11434 (Ollama) via Tailscale.
+This guide explains how to deploy LiteLLM proxy on Railway with secure access to hugo:11434 (Ollama) via Tailscale.
 
 ## Architecture
 
@@ -11,15 +11,15 @@ This guide explains how to deploy LiteLLM proxy on Railway with secure access to
     v
 [Railway - LiteLLM Proxy]
     |
-    | Tailscale VPN (restricted to hab:11434 only)
+    | Tailscale VPN (restricted to hugo:11434 only)
     v
-[hab:11434] - Ollama
+[hugo:11434] - Ollama
 ```
 
 ## Security Model
 
 - Railway container connects via Tailscale with **restricted access**
-- Tailscale ACL limits Railway to **ONLY** hab:11434
+- Tailscale ACL limits Railway to **ONLY** hugo:11434
 - IP whitelist enforces approved clients
 - API key authentication for each client
 
@@ -34,7 +34,7 @@ This guide explains how to deploy LiteLLM proxy on Railway with secure access to
     {
       "action": "accept",
       "src": ["tag:railway-proxy"],
-      "dst": ["hab:11434"]
+      "dst": ["hugo:11434"]
     }
   ],
   "tagOwners": {
@@ -43,7 +43,7 @@ This guide explains how to deploy LiteLLM proxy on Railway with secure access to
 }
 ```
 
-This ensures Railway can **ONLY** connect to port 11434 on hab.
+This ensures Railway can **ONLY** connect to port 11434 on hugo.
 
 ## Step 2: Generate Tailscale Auth Key
 
@@ -155,7 +155,7 @@ curl https://your-app.railway.app/v1/chat/completions \
 
 ## Available Ollama Models
 
-The following models are configured to use hab:11434:
+The following models are configured to use hugo:11434:
 
 - `llama3` - Llama 3 model
 - `llama2` - Llama 2 model
@@ -190,19 +190,19 @@ model_list:
 
 ## Security Checklist
 
-- [ ] Tailscale ACL configured to restrict access to hab:11434 only
+- [ ] Tailscale ACL configured to restrict access to hugo:11434 only
 - [ ] Tailscale auth key is tagged with `railway-proxy`
 - [ ] LITELLM_MASTER_KEY is set and secure
 - [ ] IP whitelist configured (if needed)
-- [ ] hab Ollama is listening on Tailscale interface only
-- [ ] No public internet access to hab:11434
+- [ ] hugo Ollama is listening on Tailscale interface only
+- [ ] No public internet access to hugo:11434
 
 ## Troubleshooting
 
-**Railway can't connect to hab:11434:**
+**Railway can't connect to hugo:11434:**
 - Check Tailscale is connected: View Railway logs for "Tailscale connected!"
-- Verify ACL allows `tag:railway-proxy` to access `hab:11434`
-- Test from Railway container: `railway run bash` then `curl http://100.75.148.4:11434`
+- Verify ACL allows `tag:railway-proxy` to access `hugo:11434`
+- Test from Railway container: `railway run bash` then `curl http://100.104.46.119:11434`
 
 **Authentication errors:**
 - Verify `LITELLM_MASTER_KEY` environment variable is set

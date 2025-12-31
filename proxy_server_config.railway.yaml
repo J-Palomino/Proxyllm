@@ -1,31 +1,31 @@
 model_list:
-  # Ollama models via hab (Tailscale)
+  # Ollama models via hugo (Tailscale)
   - model_name: llama3
     litellm_params:
       model: ollama/llama3
-      api_base: http://100.75.148.4:11434  # hab via Tailscale
+      api_base: http://100.104.46.119:11434  # hugo via Tailscale
     model_info:
-      id: "hab-llama3"
+      id: "hugo-llama3"
 
   - model_name: llama2
     litellm_params:
       model: ollama/llama2
-      api_base: http://100.75.148.4:11434  # hab via Tailscale
+      api_base: http://100.104.46.119:11434  # hugo via Tailscale
     model_info:
-      id: "hab-llama2"
+      id: "hugo-llama2"
 
   - model_name: mistral
     litellm_params:
       model: ollama/mistral
-      api_base: http://100.75.148.4:11434  # hab via Tailscale
+      api_base: http://100.104.46.119:11434  # hugo via Tailscale
     model_info:
-      id: "hab-mistral"
+      id: "hugo-mistral"
 
-  # Wildcard support for any Ollama model on hab
+  # Wildcard support for any Ollama model on hugo
   - model_name: "ollama/*"
     litellm_params:
       model: "ollama/*"
-      api_base: http://100.75.148.4:11434  # hab via Tailscale
+      api_base: http://100.104.46.119:11434  # hugo via Tailscale
 
 litellm_settings:
   drop_params: True
