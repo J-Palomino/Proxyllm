@@ -15,9 +15,10 @@ USER root
 RUN apk add --no-cache gcc openssl openssl-dev
 
 
-# Unset proxy vars during build (Railway sets SOCKS proxy which pip can't use)
-RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+# Clear proxy vars during build (Railway sets SOCKS proxy which pip can't use)
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     pip install --upgrade pip && \
+    HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     pip install build
 
 # Copy the current directory contents into the container at /app
@@ -26,24 +27,25 @@ COPY . .
 # Build Admin UI
 RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
 
-# Build the package
-RUN rm -rf dist/* && python -m build
+# Build the package (clear proxy vars for subprocesses)
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
+    python -m build
 
 # There should be only one wheel file now, assume the build only creates one
 RUN ls -1 dist/*.whl | head -1
 
-# Install the package (unset proxy vars - Railway sets SOCKS proxy)
-RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+# Install the package
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     pip install dist/*.whl
 
 # install dependencies as wheels
-RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     pip wheel --no-cache-dir --wheel-dir=/wheels/ -r requirements.txt
 
 # ensure pyjwt is used, not jwt
 RUN pip uninstall jwt -y || true
 RUN pip uninstall PyJWT -y || true
-RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     pip install PyJWT==2.9.0 --no-cache-dir
 
 # Build Admin UI
@@ -59,7 +61,7 @@ USER root
 RUN apk add --no-cache openssl tzdata curl iptables iproute2 ca-certificates wget
 
 # Install Tailscale static binary (compatible with Wolfi Linux)
-RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     wget https://pkgs.tailscale.com/stable/tailscale_1.56.1_amd64.tgz && \
     tar xzf tailscale_1.56.1_amd64.tgz && \
     mv tailscale_1.56.1_amd64/tailscale /usr/bin/ && \
@@ -76,11 +78,11 @@ COPY --from=builder /app/dist/*.whl .
 COPY --from=builder /wheels/ /wheels/
 
 # Install the built wheel using pip; again using a wildcard if it's the only file
-RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     pip install *.whl /wheels/* --no-index --find-links=/wheels/ && rm -f *.whl && rm -rf /wheels
 
 # Install aiohttp-socks for SOCKS5 proxy support (needed for Tailscale userspace networking)
-RUN unset HTTP_PROXY HTTPS_PROXY ALL_PROXY http_proxy https_proxy all_proxy && \
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     pip install aiohttp-socks python-socks
 
 # Install semantic_router and aurelio-sdk using script
