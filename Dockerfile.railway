@@ -12,7 +12,7 @@ WORKDIR /app
 USER root
 
 # Install build dependencies (python3-dev excluded - base image has Python 3.14)
-RUN apk add --no-cache gcc openssl openssl-dev
+RUN apk add --no-cache gcc openssl openssl-dev rust cargo
 
 
 # Clear proxy vars during build (Railway sets SOCKS proxy which pip can't use)
