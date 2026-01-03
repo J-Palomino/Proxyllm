@@ -81,9 +81,9 @@ COPY --from=builder /wheels/ /wheels/
 RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     pip install *.whl /wheels/* --no-index --find-links=/wheels/ && rm -f *.whl && rm -rf /wheels
 
-# Install aiohttp-socks for SOCKS5 proxy support (needed for Tailscale userspace networking)
+# Install pproxy for HTTP-to-SOCKS proxy conversion (aiohttp doesn't natively support SOCKS5 via env vars)
 RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
-    pip install aiohttp-socks python-socks
+    pip install pproxy
 
 # Install semantic_router and aurelio-sdk using script
 RUN chmod +x docker/install_auto_router.sh && ./docker/install_auto_router.sh
@@ -119,10 +119,14 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo 'else' >> /app/start_with_tailscale.sh && \
     echo '  echo "WARNING: TAILSCALE_AUTH_KEY not set, skipping Tailscale connection"' >> /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \
+    echo 'echo "Starting HTTP-to-SOCKS proxy bridge..."' >> /app/start_with_tailscale.sh && \
+    echo 'pproxy -l http://0.0.0.0:1080 -r socks5://localhost:1055 &' >> /app/start_with_tailscale.sh && \
+    echo 'sleep 1' >> /app/start_with_tailscale.sh && \
+    echo 'export HTTP_PROXY=http://localhost:1080' >> /app/start_with_tailscale.sh && \
+    echo 'export HTTPS_PROXY=http://localhost:1080' >> /app/start_with_tailscale.sh && \
+    echo 'export http_proxy=http://localhost:1080' >> /app/start_with_tailscale.sh && \
+    echo 'export https_proxy=http://localhost:1080' >> /app/start_with_tailscale.sh && \
     echo 'echo "Starting LiteLLM proxy..."' >> /app/start_with_tailscale.sh && \
-    echo 'export HTTP_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo 'export HTTPS_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
-    echo 'export ALL_PROXY=socks5://localhost:1055' >> /app/start_with_tailscale.sh && \
     echo 'exec docker/prod_entrypoint.sh "$@"' >> /app/start_with_tailscale.sh && \
     chmod +x /app/start_with_tailscale.sh
 
