@@ -32,6 +32,7 @@ litellm_settings:
   num_retries: 3
   request_timeout: 600
   telemetry: False
+  aiohttp_trust_env: True  # Enable HTTP_PROXY support for Tailscale
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
