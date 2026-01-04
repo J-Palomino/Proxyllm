@@ -60,7 +60,8 @@ FROM $LITELLM_RUNTIME_IMAGE AS runtime
 USER root
 
 # Install runtime dependencies including Tailscale
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
+    apt-get update && apt-get install -y --no-install-recommends \
     openssl tzdata curl iptables iproute2 ca-certificates wget \
     && rm -rf /var/lib/apt/lists/*
 
@@ -99,7 +100,8 @@ RUN chmod +x docker/prod_entrypoint.sh
 
 EXPOSE 4000/tcp
 
-RUN apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
+    apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
 COPY docker/supervisord.conf /etc/supervisord.conf
 
 # Create Tailscale startup script with subnet routing support
