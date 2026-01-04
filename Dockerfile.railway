@@ -12,7 +12,8 @@ WORKDIR /app
 USER root
 
 # Install build dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
+    apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ make libssl-dev libffi-dev python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
