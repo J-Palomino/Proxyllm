@@ -1,8 +1,8 @@
-# Base image for building
-ARG LITELLM_BUILD_IMAGE=cgr.dev/chainguard/python:latest-dev
+# Base image for building - use Python 3.12 (3.14 is too new for many packages)
+ARG LITELLM_BUILD_IMAGE=python:3.12-slim-bookworm
 
 # Runtime image
-ARG LITELLM_RUNTIME_IMAGE=cgr.dev/chainguard/python:latest-dev
+ARG LITELLM_RUNTIME_IMAGE=python:3.12-slim-bookworm
 # Builder stage
 FROM $LITELLM_BUILD_IMAGE AS builder
 
@@ -11,8 +11,10 @@ WORKDIR /app
 
 USER root
 
-# Install build dependencies (python3-dev excluded - base image has Python 3.14)
-RUN apk add --no-cache gcc openssl openssl-dev
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc g++ make libssl-dev libffi-dev python3-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 
 # Clear proxy vars during build (Railway sets SOCKS proxy which pip can't use)
@@ -58,7 +60,9 @@ FROM $LITELLM_RUNTIME_IMAGE AS runtime
 USER root
 
 # Install runtime dependencies including Tailscale
-RUN apk add --no-cache openssl tzdata curl iptables iproute2 ca-certificates wget
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl tzdata curl iptables iproute2 ca-certificates wget \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Tailscale static binary (compatible with Wolfi Linux)
 RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
@@ -95,7 +99,7 @@ RUN chmod +x docker/prod_entrypoint.sh
 
 EXPOSE 4000/tcp
 
-RUN apk add --no-cache supervisor
+RUN apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
 COPY docker/supervisord.conf /etc/supervisord.conf
 
 # Create Tailscale startup script with subnet routing support
