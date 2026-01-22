@@ -105,8 +105,9 @@ RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Create Tailscale startup script with subnet routing support
+# Create Tailscale startup script with subnet routing support - v3 rebuild
 RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
+    echo '# Startup script v3 - pproxy bridge enabled' >> /app/start_with_tailscale.sh && \
     echo 'set -e' >> /app/start_with_tailscale.sh && \
     echo 'echo "Starting Tailscale daemon..."' >> /app/start_with_tailscale.sh && \
     echo 'tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &' >> /app/start_with_tailscale.sh && \
