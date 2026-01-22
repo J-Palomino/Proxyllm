@@ -140,5 +140,5 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
 ENTRYPOINT ["/app/start_with_tailscale.sh"]
 
 # Append "--detailed_debug" to the end of CMD to view detailed debug logs
-# Build trigger: pproxy v1
+# Build trigger: pproxy v2 - force cache invalidation
 CMD ["--config", "proxy_server_config.railway.yaml", "--port", "4000"]
