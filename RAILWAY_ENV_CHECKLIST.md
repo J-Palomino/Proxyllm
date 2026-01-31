@@ -53,7 +53,7 @@
 - **Connection**: Enabled via `TAILSCALE_AUTH_KEY`
 - **Target**: hab:11434 (100.75.148.4:11434)
 - **Access Control**: Restricted via Tailscale ACL (tag: `railway-proxy`)
-- **Models**: llama3, llama2, mistral, ollama/*
+- **Models**: llama3 (→llama3.1:8b), llama3.1, gemma3, glm4, ollama/*
 
 ### Stripe Integration
 - **Mode**: Hybrid (Meters + Prepaid Balance)
