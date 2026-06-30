@@ -45,6 +45,45 @@ STT is identical with `"mode": "audio_transcription"`.
 Credentials are managed separately (`GET /credentials`); reuse a stored credential by
 name rather than pasting keys inline.
 
+## Add a voice model via the Admin UI
+
+The UI supports voice models natively. This is an **admin / model-management** action
+- regular end users and teams cannot add or enable voice on their own models; they only
+consume models an admin has exposed to them (optionally scoped via model access groups).
+
+Steps (`/ui` -> Models -> Add Model):
+
+1. Pick the provider and the model (e.g. provider OpenAI, model `tts-1`).
+2. Select a stored credential (or enter the API key inline).
+3. Open **Advanced Settings** and set the mode in the **"Model Info"** JSON box:
+   - TTS: `{ "mode": "audio_speech" }`
+   - STT: `{ "mode": "audio_transcription" }`
+   This is the key step - the mode is NOT a dedicated dropdown; it is set through this
+   free-form JSON field. Without it the model will not appear under the audio endpoints.
+4. (Optional) Use **Test Connection** - the mode dropdown there lists
+   `Audio Speech - /audio/speech` and `Audio Transcription - /audio/transcriptions`,
+   so you can verify the model responds before saving.
+5. Save.
+
+### Pricing in the UI - watch the per-character gap
+
+Advanced Settings -> custom pricing exposes only two bases:
+
+| UI pricing option   | Maps to                  | Use for            |
+|---------------------|--------------------------|--------------------|
+| Per Million Tokens  | input/output_cost_per_token | gpt-4o-transcribe, gpt-4o-mini-tts |
+| Per Second          | input_cost_per_second    | whisper-1          |
+
+There is **no per-character field** in the UI. For character-priced TTS models
+(`tts-1`, `tts-1-hd`) set the cost in the **"Model Info"** JSON box alongside `mode`,
+or PATCH it via the API afterward:
+
+```json
+{ "mode": "audio_speech", "output_cost_per_character": 3.0e-5 }
+```
+
+(Either the "Model Info" or "LiteLLM Params" JSON box works; both are free-form.)
+
 ## Pricing
 
 LiteLLM auto-populates cost from its built-in registry for known models. Some audio
