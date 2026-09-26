@@ -6,14 +6,23 @@ ARG LITELLM_RUNTIME_IMAGE=python:3.12-slim-bookworm
 # Builder stage
 FROM $LITELLM_BUILD_IMAGE AS builder
 
+# Shadow any proxy build-args with empty defaults so apt-get and pip
+# are never routed through a Tailscale SOCKS proxy that only exists at runtime.
+ARG HTTP_PROXY=""
+ARG HTTPS_PROXY=""
+ARG ALL_PROXY=""
+ARG http_proxy=""
+ARG https_proxy=""
+ARG all_proxy=""
+ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
+
 # Set the working directory to /app
 WORKDIR /app
 
 USER root
 
 # Install build dependencies
-RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
-    apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc g++ make libssl-dev libffi-dev python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -56,6 +65,15 @@ RUN chmod +x docker/build_admin_ui.sh && ./docker/build_admin_ui.sh
 
 # Runtime stage
 FROM $LITELLM_RUNTIME_IMAGE AS runtime
+
+# Shadow proxy build-args with empty defaults (same as builder stage).
+ARG HTTP_PROXY=""
+ARG HTTPS_PROXY=""
+ARG ALL_PROXY=""
+ARG http_proxy=""
+ARG https_proxy=""
+ARG all_proxy=""
+ENV HTTP_PROXY="" HTTPS_PROXY="" ALL_PROXY="" http_proxy="" https_proxy="" all_proxy=""
 
 # Ensure runtime stage runs as root
 USER root
