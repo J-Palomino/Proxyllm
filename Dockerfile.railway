@@ -119,64 +119,53 @@ RUN chmod +x docker/prod_entrypoint.sh
 
 EXPOSE 4000/tcp
 
+# Force unbuffered Python output so logs appear even if the process crashes quickly
+ENV PYTHONUNBUFFERED=1
+
 RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Create Tailscale startup script - v5: non-fatal Tailscale (set -e removed)
+# Create startup script - v6: stderr->stdout, SQLite DB fallback, Tailscale non-fatal
 RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
-    echo '# Startup script v5 - Tailscale errors are non-fatal so LiteLLM always starts' >> /app/start_with_tailscale.sh && \
-    echo 'echo "Starting Tailscale daemon..."' >> /app/start_with_tailscale.sh && \
-    echo 'tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &' >> /app/start_with_tailscale.sh && \
+    echo '# v6: redirect stderr to stdout so all crashes are visible in Railway logs' >> /app/start_with_tailscale.sh && \
+    echo 'exec 2>&1' >> /app/start_with_tailscale.sh && \
+    echo 'echo "[startup] PID=$$, args=$*"' >> /app/start_with_tailscale.sh && \
+    echo '# Default to SQLite if no DATABASE_URL set - LITELLM_MASTER_KEY requires a DB' >> /app/start_with_tailscale.sh && \
+    echo 'if [ -z "$DATABASE_URL" ]; then' >> /app/start_with_tailscale.sh && \
+    echo '  export DATABASE_URL="file:/app/litellm.db"' >> /app/start_with_tailscale.sh && \
+    echo '  echo "[startup] DATABASE_URL not set, defaulting to SQLite: $DATABASE_URL"' >> /app/start_with_tailscale.sh && \
+    echo 'fi' >> /app/start_with_tailscale.sh && \
+    echo 'echo "[startup] Starting Tailscale daemon..."' >> /app/start_with_tailscale.sh && \
+    echo 'tailscaled --tun=userspace-networking --socks5-server=localhost:1055 2>&1 &' >> /app/start_with_tailscale.sh && \
     echo 'sleep 3' >> /app/start_with_tailscale.sh && \
     echo 'if [ -n "$TAILSCALE_AUTH_KEY" ]; then' >> /app/start_with_tailscale.sh && \
-    echo '  TAILSCALE_ROUTES="${TAILSCALE_ADVERTISE_ROUTES:-}"' >> /app/start_with_tailscale.sh && \
     echo '  TAILSCALE_ACCEPT_ROUTES="${TAILSCALE_ACCEPT_ROUTES:-true}"' >> /app/start_with_tailscale.sh && \
+    echo '  TAILSCALE_ROUTES="${TAILSCALE_ADVERTISE_ROUTES:-}"' >> /app/start_with_tailscale.sh && \
     echo '  if [ -n "$TAILSCALE_ROUTES" ]; then' >> /app/start_with_tailscale.sh && \
-    echo '    echo "Connecting to Tailscale with subnet routes: $TAILSCALE_ROUTES"' >> /app/start_with_tailscale.sh && \
-    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --advertise-routes=$TAILSCALE_ROUTES --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false || echo "WARNING: tailscale up failed, continuing anyway"' >> /app/start_with_tailscale.sh && \
+    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --advertise-routes=$TAILSCALE_ROUTES --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false 2>&1 || echo "[startup] WARNING: tailscale up failed, continuing"' >> /app/start_with_tailscale.sh && \
     echo '  else' >> /app/start_with_tailscale.sh && \
-    echo '    echo "Connecting to Tailscale (no subnet routing)"' >> /app/start_with_tailscale.sh && \
-    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false || echo "WARNING: tailscale up failed, continuing anyway"' >> /app/start_with_tailscale.sh && \
+    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false 2>&1 || echo "[startup] WARNING: tailscale up failed, continuing"' >> /app/start_with_tailscale.sh && \
     echo '  fi' >> /app/start_with_tailscale.sh && \
-    echo '  tailscale status || true' >> /app/start_with_tailscale.sh && \
+    echo '  tailscale status 2>&1 || true' >> /app/start_with_tailscale.sh && \
     echo 'else' >> /app/start_with_tailscale.sh && \
-    echo '  echo "WARNING: TAILSCALE_AUTH_KEY not set, skipping Tailscale connection"' >> /app/start_with_tailscale.sh && \
+    echo '  echo "[startup] TAILSCALE_AUTH_KEY not set, skipping Tailscale"' >> /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \
-    echo 'echo "Starting HTTP-to-SOCKS proxy bridge..."' >> /app/start_with_tailscale.sh && \
-    echo 'pproxy -l http://0.0.0.0:1080 -r socks5://localhost:1055 &' >> /app/start_with_tailscale.sh && \
-    echo 'PPROXY_PID=$!' >> /app/start_with_tailscale.sh && \
-    echo 'sleep 2' >> /app/start_with_tailscale.sh && \
-    echo 'if kill -0 $PPROXY_PID 2>/dev/null; then' >> /app/start_with_tailscale.sh && \
-    echo '  echo "pproxy started successfully (PID: $PPROXY_PID)"' >> /app/start_with_tailscale.sh && \
-    echo 'else' >> /app/start_with_tailscale.sh && \
-    echo '  echo "ERROR: pproxy failed to start!"' >> /app/start_with_tailscale.sh && \
-    echo 'fi' >> /app/start_with_tailscale.sh && \
-    echo '# Set proxy env vars - CRITICAL: unset NO_PROXY to ensure all traffic goes through proxy' >> /app/start_with_tailscale.sh && \
-    echo 'unset NO_PROXY' >> /app/start_with_tailscale.sh && \
-    echo 'unset no_proxy' >> /app/start_with_tailscale.sh && \
+    echo 'echo "[startup] Starting pproxy bridge..."' >> /app/start_with_tailscale.sh && \
+    echo 'pproxy -l http://0.0.0.0:1080 -r socks5://localhost:1055 2>&1 &' >> /app/start_with_tailscale.sh && \
+    echo 'sleep 1' >> /app/start_with_tailscale.sh && \
     echo 'export HTTP_PROXY=http://127.0.0.1:1080' >> /app/start_with_tailscale.sh && \
     echo 'export HTTPS_PROXY=http://127.0.0.1:1080' >> /app/start_with_tailscale.sh && \
     echo 'export http_proxy=http://127.0.0.1:1080' >> /app/start_with_tailscale.sh && \
     echo 'export https_proxy=http://127.0.0.1:1080' >> /app/start_with_tailscale.sh && \
     echo 'export ALL_PROXY=socks5://127.0.0.1:1055' >> /app/start_with_tailscale.sh && \
     echo 'export all_proxy=socks5://127.0.0.1:1055' >> /app/start_with_tailscale.sh && \
-    echo 'echo "Proxy environment configured:"' >> /app/start_with_tailscale.sh && \
-    echo 'echo "  HTTP_PROXY=$HTTP_PROXY"' >> /app/start_with_tailscale.sh && \
-    echo 'echo "  ALL_PROXY=$ALL_PROXY"' >> /app/start_with_tailscale.sh && \
-    echo '# Test connectivity to HAB via Tailscale SOCKS proxy' >> /app/start_with_tailscale.sh && \
-    echo 'echo "Testing connectivity to HAB (100.75.148.4:11434)..."' >> /app/start_with_tailscale.sh && \
-    echo 'if curl -s --proxy socks5://127.0.0.1:1055 --connect-timeout 10 http://100.75.148.4:11434/api/tags >/dev/null 2>&1; then' >> /app/start_with_tailscale.sh && \
-    echo '  echo "SUCCESS: HAB Ollama is reachable via Tailscale!"' >> /app/start_with_tailscale.sh && \
-    echo 'else' >> /app/start_with_tailscale.sh && \
-    echo '  echo "WARNING: Cannot reach HAB. Check if HAB is online and Ollama is running."' >> /app/start_with_tailscale.sh && \
-    echo 'fi' >> /app/start_with_tailscale.sh && \
-    echo 'echo "Starting LiteLLM proxy..."' >> /app/start_with_tailscale.sh && \
+    echo 'unset NO_PROXY no_proxy' >> /app/start_with_tailscale.sh && \
+    echo 'echo "[startup] Starting LiteLLM..."' >> /app/start_with_tailscale.sh && \
     echo 'exec docker/prod_entrypoint.sh "$@"' >> /app/start_with_tailscale.sh && \
     chmod +x /app/start_with_tailscale.sh
 
 ENTRYPOINT ["/app/start_with_tailscale.sh"]
 
-# Append "--detailed_debug" to the end of CMD to view detailed debug logs
-# Build trigger: v4 - fixed NO_PROXY, added connectivity test
+# Build trigger: v6 - PYTHONUNBUFFERED, stderr->stdout, SQLite DB fallback
 CMD ["--config", "proxy_server_config.railway.yaml", "--port", "4000"]
