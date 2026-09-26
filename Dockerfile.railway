@@ -123,10 +123,9 @@ RUN HTTP_PROXY= HTTPS_PROXY= ALL_PROXY= http_proxy= https_proxy= all_proxy= \
     apt-get update && apt-get install -y --no-install-recommends supervisor && rm -rf /var/lib/apt/lists/*
 COPY docker/supervisord.conf /etc/supervisord.conf
 
-# Create Tailscale startup script with subnet routing support - v4 rebuild
+# Create Tailscale startup script - v5: non-fatal Tailscale (set -e removed)
 RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
-    echo '# Startup script v4 - fixed NO_PROXY and added debug logging' >> /app/start_with_tailscale.sh && \
-    echo 'set -e' >> /app/start_with_tailscale.sh && \
+    echo '# Startup script v5 - Tailscale errors are non-fatal so LiteLLM always starts' >> /app/start_with_tailscale.sh && \
     echo 'echo "Starting Tailscale daemon..."' >> /app/start_with_tailscale.sh && \
     echo 'tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &' >> /app/start_with_tailscale.sh && \
     echo 'sleep 3' >> /app/start_with_tailscale.sh && \
@@ -135,13 +134,12 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo '  TAILSCALE_ACCEPT_ROUTES="${TAILSCALE_ACCEPT_ROUTES:-true}"' >> /app/start_with_tailscale.sh && \
     echo '  if [ -n "$TAILSCALE_ROUTES" ]; then' >> /app/start_with_tailscale.sh && \
     echo '    echo "Connecting to Tailscale with subnet routes: $TAILSCALE_ROUTES"' >> /app/start_with_tailscale.sh && \
-    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --advertise-routes=$TAILSCALE_ROUTES --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false' >> /app/start_with_tailscale.sh && \
+    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --advertise-routes=$TAILSCALE_ROUTES --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false || echo "WARNING: tailscale up failed, continuing anyway"' >> /app/start_with_tailscale.sh && \
     echo '  else' >> /app/start_with_tailscale.sh && \
     echo '    echo "Connecting to Tailscale (no subnet routing)"' >> /app/start_with_tailscale.sh && \
-    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false' >> /app/start_with_tailscale.sh && \
+    echo '    tailscale up --authkey=$TAILSCALE_AUTH_KEY --hostname=railway-litellm --accept-routes=$TAILSCALE_ACCEPT_ROUTES --accept-dns=false || echo "WARNING: tailscale up failed, continuing anyway"' >> /app/start_with_tailscale.sh && \
     echo '  fi' >> /app/start_with_tailscale.sh && \
-    echo '  echo "Tailscale connected successfully!"' >> /app/start_with_tailscale.sh && \
-    echo '  tailscale status' >> /app/start_with_tailscale.sh && \
+    echo '  tailscale status || true' >> /app/start_with_tailscale.sh && \
     echo 'else' >> /app/start_with_tailscale.sh && \
     echo '  echo "WARNING: TAILSCALE_AUTH_KEY not set, skipping Tailscale connection"' >> /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \
