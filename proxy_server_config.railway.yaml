@@ -69,6 +69,7 @@ general_settings:
   database_url: os.environ/DATABASE_URL
   database_connection_pool_limit: 20
   database_connection_timeout: 60
+  disable_swagger_ui: True  # Do not expose API docs publicly; internal proxy only
 
   # IP Whitelist - Add your approved client IPs here
   # allowed_ips:

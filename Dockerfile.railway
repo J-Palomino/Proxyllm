@@ -152,7 +152,7 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo '  echo "[startup] TAILSCALE_AUTH_KEY not set, skipping Tailscale"' >> /app/start_with_tailscale.sh && \
     echo 'fi' >> /app/start_with_tailscale.sh && \
     echo 'echo "[startup] Starting pproxy bridge..."' >> /app/start_with_tailscale.sh && \
-    echo 'pproxy -l http://0.0.0.0:1080 -r socks5://localhost:1055 2>&1 &' >> /app/start_with_tailscale.sh && \
+    echo 'pproxy -l http://127.0.0.1:1080 -r socks5://localhost:1055 2>&1 &' >> /app/start_with_tailscale.sh && \
     echo 'sleep 1' >> /app/start_with_tailscale.sh && \
     echo 'export HTTP_PROXY=http://127.0.0.1:1080' >> /app/start_with_tailscale.sh && \
     echo 'export HTTPS_PROXY=http://127.0.0.1:1080' >> /app/start_with_tailscale.sh && \
@@ -171,5 +171,5 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
 
 ENTRYPOINT ["/app/start_with_tailscale.sh"]
 
-# Build trigger: v10 - fix NO_PROXY to exclude localhost/railway.internal from Tailscale proxy
+# Build trigger: v11 - disable swagger UI, bind pproxy to 127.0.0.1 only
 CMD ["--config", "proxy_server_config.railway.yaml", "--port", "4000"]
