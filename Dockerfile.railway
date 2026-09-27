@@ -160,12 +160,16 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
     echo 'export https_proxy=http://127.0.0.1:1080' >> /app/start_with_tailscale.sh && \
     echo '# ALL_PROXY removed: httpx fails at import if SOCKS proxy set without socksio' >> /app/start_with_tailscale.sh && \
     echo '# pproxy bridge converts HTTP->SOCKS so HTTP_PROXY is sufficient' >> /app/start_with_tailscale.sh && \
-    echo 'unset ALL_PROXY all_proxy NO_PROXY no_proxy' >> /app/start_with_tailscale.sh && \
+    echo 'unset ALL_PROXY all_proxy' >> /app/start_with_tailscale.sh && \
+    echo '# NO_PROXY must exclude localhost and Railway internals or Prisma query engine' >> /app/start_with_tailscale.sh && \
+    echo '# connections (localhost:<port>) are routed through pproxy->tailscaled and fail' >> /app/start_with_tailscale.sh && \
+    echo 'export NO_PROXY="localhost,127.0.0.1,::1,0.0.0.0,*.railway.internal"' >> /app/start_with_tailscale.sh && \
+    echo 'export no_proxy="localhost,127.0.0.1,::1,0.0.0.0,*.railway.internal"' >> /app/start_with_tailscale.sh && \
     echo 'echo "[startup] Starting LiteLLM..."' >> /app/start_with_tailscale.sh && \
     echo 'exec docker/prod_entrypoint.sh "$@"' >> /app/start_with_tailscale.sh && \
     chmod +x /app/start_with_tailscale.sh
 
 ENTRYPOINT ["/app/start_with_tailscale.sh"]
 
-# Build trigger: v9 - disable LiteLLM startup health checks (Tailscale not up at init time)
+# Build trigger: v10 - fix NO_PROXY to exclude localhost/railway.internal from Tailscale proxy
 CMD ["--config", "proxy_server_config.railway.yaml", "--port", "4000"]
