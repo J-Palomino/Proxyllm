@@ -61,6 +61,7 @@ litellm_settings:
   request_timeout: 600
   telemetry: False
   aiohttp_trust_env: True  # Enable HTTP_PROXY support for Tailscale
+  health_check_interval: -1  # Disable automatic backend health checks at startup (backends unreachable until Tailscale connects)
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
