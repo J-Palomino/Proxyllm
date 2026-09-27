@@ -4,7 +4,6 @@ Endpoint to run Stripe balance table migration
 from fastapi import APIRouter, Depends, HTTPException
 from litellm.proxy.auth.user_api_key_auth import user_api_key_auth
 from litellm.proxy._types import UserAPIKeyAuth
-from litellm.proxy.proxy_server import prisma_client
 import traceback
 
 router = APIRouter()
@@ -26,6 +25,7 @@ async def run_stripe_migration(
         )
 
     try:
+        from litellm.proxy.proxy_server import prisma_client  # lazy import avoids circular import at module init
         # SQL to create tables
         sql_statements = [
             # Create StripeBalanceTable

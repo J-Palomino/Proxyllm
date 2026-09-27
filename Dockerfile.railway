@@ -167,5 +167,5 @@ RUN echo '#!/bin/sh' > /app/start_with_tailscale.sh && \
 
 ENTRYPOINT ["/app/start_with_tailscale.sh"]
 
-# Build trigger: v7 - remove ALL_PROXY to fix httpx socksio ImportError
+# Build trigger: v8 - fix circular import in run_stripe_migration.py
 CMD ["--config", "proxy_server_config.railway.yaml", "--port", "4000"]
